@@ -50,12 +50,13 @@ typedef struct{
 
 
 int minimizeTable(Table *table);
-void fillTable(Minterm *minterms, int n, Table *table);
+Table *createTable(Minterm **minterms, int n);
 
 void Table_append(Table *table, Group *group);
 void Group_append(Group *group, Minterm *mt);
 
 int getSetBits(Minterm minterm);
+Minterm *IntToMinterm(uint64_t num);
 
 
 #endif
