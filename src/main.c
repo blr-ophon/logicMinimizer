@@ -1,43 +1,6 @@
-#include <stdio.h>
-#include <stdlib.h>
+#include "main.h"
 
-//TODO:
-//ncurses interface with printed tables and scrolling
-//when a new minimization starts, a windows pops up and prompts for
-//number of minterms and its values
-//Minimized circuit is printed in ascii
-//
-
-
-/*
- * minterms are int arrays (unlimited length, can contain 1, 0 or -)
- * tables are minterms organized in groups
- */
-
-
-typedef enum{
-    BIT_1 = 1,
-    BIT_0 = 0,
-    BIT_X = 2,
-}BitState;
-
-typedef struct{
-    int size;               //number of bits
-    BitState *bits;
-}Minterm;
-
-typedef struct{
-    int set_bits;           //number of '1' bits on members of this group
-    int size;               //number of minterms in this group
-    Minterm *minterms;     
-}Group;
-
-typedef struct{
-    int size;           //number of groups
-    Group *groups;
-}Table;
-
-
+#define MAX_MINTERM_BITSIZE 64
 
 int main(void){
     //Get number of minterms and minterms
@@ -60,22 +23,75 @@ int minimizeTable(Table *table){
     return 0;
 }
 
-Group *createTable(Minterm *minterms){
-    //
-    int n = 0;      //max number of set bits
-    for(int i = 0; i < n; i++){
+void Group_append(Group *group, Minterm *mt){
+    group->minterms = realloc(group->minterms, group->size + 1);
+    group->minterms[group->size] = mt;
+    group->size++;
+}
+
+void Table_append(Table *table, Group *group){
+    table->groups = realloc(table->groups, table->size + 1);
+    table->groups[table->size] = group;
+    table->size++;
+}
+
+void fillTable(Minterm *minterms, int n, Table *table){
+
+
+    Group **all_groups = calloc(MAX_MINTERM_BITSIZE, sizeof(void*));
+
+    //get maximum number of set bits and fill "existing groups"
+    table->max_setBits = 0;
+    for(int i = 0; i < n; i++){ 
+        int set_bits = getSetBits(minterms[i]);
+        if(set_bits > table->max_setBits){ 
+            table->max_setBits = set_bits;
+        }
+
+        //append to all_groups[set_bits]
+        if(!all_groups[set_bits]){
+            all_groups[set_bits] = calloc(1, sizeof(Group));
+        }
+        Group_append(all_groups[set_bits], &minterms[i]);
+    }
+
+    //pass all_groups to table->groups and free all_groups
+    for(int i = 0; i < MAX_MINTERM_BITSIZE; i++){
+        if(all_groups[i]){
+            Table_append(table, all_groups[i]);
+        }
     }
 }
 
-static int getSetBits(Minterm minterm){
+/*
+ * Gets a 64bits minterm and converts it to a Minterm struct
+ */
+Minterm *IntToMinterm(uint64_t num){
+    Minterm *minterm = calloc(1, sizeof(Minterm));
+
+    //get size and number of set bits
+    for(int i = 0; i < MAX_MINTERM_BITSIZE; i++){
+        if((num >> i) & BIT_1){
+            minterm->size = i+1;
+            minterm->set_bits ++;
+        }
+    }
+
+    //fill bit array
+    minterm->bits = calloc(minterm->size, sizeof(BitState));
+    for(int i = 0; i < minterm->size; i++){
+        minterm->bits[i] = (num >> i) & 0x1;
+    }
+
+    return minterm;
+}
+
+
+
+int getSetBits(Minterm minterm){
     int rv = 0;
     for(int i = 0; i < minterm.size; i++){
         if(minterm.bits[i] == BIT_1) rv++;
     }
     return rv;
-}
-
-static int getMaxBits(Minterm *minterms, int n){
-    for(int i = 0; i < n; i++){ 
-    }
 }
