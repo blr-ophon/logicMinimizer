@@ -54,6 +54,9 @@ int main(void){
  * has made. When zero, no more minimizations are possible
  */
 int minimizeTable(Table *table){
+    for(int i = 0; i < table->size -1; i++){
+        //compare group i to group i+1
+    }
     return 0;
 }
 
@@ -65,7 +68,11 @@ Group *createTable(Minterm *minterms){
 }
 
 static int getSetBits(Minterm minterm){
-
+    int rv = 0;
+    for(int i = 0; i < minterm.size; i++){
+        if(minterm.bits[i] == BIT_1) rv++;
+    }
+    return rv;
 }
 
 static int getMaxBits(Minterm *minterms, int n){
