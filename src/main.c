@@ -44,6 +44,9 @@ int main(void){
     Table *minimizedTable = minimizeTable(table);
     printTable(minimizedTable);
 
+    minimizedTable = minimizeTable(minimizedTable);
+    printTable(minimizedTable);
+
 
 
     //Group minterms
@@ -57,6 +60,10 @@ int main(void){
 }
 
 bool termIsPresent(uint64_t newTerm, uint64_t *terms, int n){
+    //Temporary workaround 
+    if(newTerm == 0) return false;
+
+
     for(int i = 0; i < n; i++){
         if(terms[i] == newTerm) return true;
     }
