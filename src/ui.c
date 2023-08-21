@@ -3,6 +3,22 @@
 
 #include "ui.h"
 
+/*
+ * ncurses:
+ *
+ * struct windows{
+ *  global window;
+ *  tab1;
+ *  tab2;
+ *  tab3;
+ * }
+ *
+ * must be passed to all ui functions
+ * make init functions
+ * main() will call all ui functions, no need
+ * to pass windows to algorithms
+ */
+
 
 void printMinterm(Minterm *minterm){
     if(!minterm) return;
@@ -11,7 +27,7 @@ void printMinterm(Minterm *minterm){
         printf("0");
     }
 
-    int leading_spaces = 15 - minterm->size;
+    int leading_spaces = 25 - minterm->size;
     printf("%0*d", leading_spaces, 0);
 
     for(int i = minterm->size-1; i >= 0; i--){

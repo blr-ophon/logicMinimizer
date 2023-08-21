@@ -59,6 +59,39 @@ int main(void){
     return 0; 
 }
 
+
+typedef struct{
+    Minterm **minterms;
+    int size;
+}Implicants;
+
+
+void getImplicants(void){
+    //minimize table until no minimization is possible
+}
+
+
+void getPrimeImplicants(void){
+    //receives array of implicant minterms
+    //
+    //create Petrick table with all implicants and provided
+    //minterms
+    //
+    //for each implicant
+    //compare non-x bits to all the minterms provided
+    //Important: all leading 0s become leading dont cares
+    //fill table
+    //
+    //get prime implicants and return them
+}
+
+void PrimeImplicantsToEquation(void){
+    //All implicants become ex.: (x1)'(x43)(x64), (x12)(x5)' etc
+    //add a "+" sign between them
+    //
+    //Print equation and circuit
+}
+
 bool termIsPresent(uint64_t newTerm, uint64_t *terms, int n){
     //Temporary workaround 
     if(newTerm == 0) return false;
@@ -95,6 +128,12 @@ bool singleChangingBit(Minterm *m1, Minterm *m2, int *changing_bit_pos){
  * has made. When zero, no more minimizations are possible
  */
 Table *minimizeTable(Table *table){
+    if(!table){
+        return NULL;
+    }
+
+    int minimized_terms = 0;
+
     Table *newTable = calloc(1, sizeof(Table));
     Group **all_groups = calloc(MAX_MINTERM_BITSIZE, sizeof(void*));
 
@@ -102,6 +141,8 @@ Table *minimizeTable(Table *table){
         //compare minterms of group i to minterms of group i+1
         Group *g1 = table->groups[i];
         Group *g2 = table->groups[i+1];
+
+        if(g2->set_bits - g1->set_bits > 1) continue;
 
         for(int j = 0; j < g1->size; j++){
             Minterm *m1 = g1->minterms[j];
@@ -112,6 +153,8 @@ Table *minimizeTable(Table *table){
                 int changing_bit_pos;
 
                 if(singleChangingBit(m1, m2, &changing_bit_pos)){
+                    minimized_terms++;
+
                     //create new minterm with bit[changing_bit_pos] = BIT_X
                     Minterm *largest_mt = m1->size >= m2->size? m1 : m2;
                     Minterm *newMinterm = calloc(1, sizeof(Minterm));
@@ -141,8 +184,11 @@ Table *minimizeTable(Table *table){
         }
     }
     free(all_groups);
-
     //Old table is freed by caller
+    
+    if(minimized_terms == 0){
+        return NULL;
+    }
     return newTable;
 }
 
