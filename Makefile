@@ -1,6 +1,7 @@
 CC = gcc
 OPT = -O0
 CFLAGS = -std=c99 -fPIC -g -Wall -Wextra -pedantic $(OPT)
+#CFLAGS = -std=gnu99 -fPIC -g -Wall -Wextra -pedantic $(OPT) -fsanitize=address -fno-omit-frame-pointer
 
 INCLUDES= -I ./include
 LIBRARIES= 

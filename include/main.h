@@ -57,6 +57,7 @@ void Group_append(Group *group, Minterm *mt);
 
 int getSetBits(Minterm minterm);
 Minterm *IntToMinterm(uint64_t num);
+bool termIsPresent(uint64_t newTerm, uint64_t *terms, int n);
 
 
 #endif

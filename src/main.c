@@ -4,31 +4,42 @@
 #define MAX_MINTERM_BITSIZE 64
 #define BUF_SIZE 256
 
+
+
 int main(void){
     //Get number of minterms and minterms
     char buf[BUF_SIZE] = {0};
     printf("\nNumber of terms:");
     fgets(buf, BUF_SIZE, stdin);
-    int n = atoi(buf);
+    int terms_n = atoi(buf);
+    int valid_terms_n = 0;
 
-    uint64_t *terms = calloc(n, sizeof(uint64_t));
+    uint64_t *terms = calloc(terms_n, sizeof(uint64_t));
 
     printf("\nTerms:\n");
-    for(int i = 0; i < n; i++){
+
+
+    for(int i = 0; i < terms_n; i++){
         fgets(buf, BUF_SIZE, stdin);
-        terms[i] = atoi(buf);
+        uint64_t newTerm = atoi(buf);
+        if(!termIsPresent(newTerm, terms, terms_n)){
+            //ignore repeated terms
+            terms[valid_terms_n++] = newTerm;
+        }
     }
 
-    Minterm **minterms = calloc(n, sizeof(void*));
+    Minterm **minterms = calloc(valid_terms_n, sizeof(void*));
 
-    for(int i = 0; i < n; i++){
+    for(int i = 0; i < valid_terms_n; i++){
         minterms[i] = IntToMinterm(terms[i]);
     }
 
-    for(int i = 0; i < n; i++){
+    for(int i = 0; i < valid_terms_n; i++){
         printMinterm(minterms[i]); 
     }
 
+    Table *table = createTable(minterms, valid_terms_n);
+    printTable(table);
 
 
     //Group minterms
@@ -37,7 +48,15 @@ int main(void){
     //Petrick's algorithm
     //convert to boolean expression and print
     free(terms);
+    //TODO: free table and minterms
     return 0; 
+}
+
+bool termIsPresent(uint64_t newTerm, uint64_t *terms, int n){
+    for(int i = 0; i < n; i++){
+        if(terms[i] == newTerm) return true;
+    }
+    return false;
 }
 
 /*
@@ -52,13 +71,13 @@ int minimizeTable(Table *table){
 }
 
 void Group_append(Group *group, Minterm *mt){
-    group->minterms = realloc(group->minterms, group->size + 1);
+    group->minterms = realloc(group->minterms, (group->size + 1)*sizeof(void*));
     group->minterms[group->size] = mt;
     group->size++;
 }
 
 void Table_append(Table *table, Group *group){
-    table->groups = realloc(table->groups, table->size + 1);
+    table->groups = realloc(table->groups, (table->size + 1) *sizeof(void*));
     table->groups[table->size] = group;
     table->size++;
 }
@@ -78,6 +97,7 @@ Table *createTable(Minterm **minterms, int n){
         //append to all_groups[set_bits]
         if(!all_groups[set_bits]){
             all_groups[set_bits] = calloc(1, sizeof(Group));
+            all_groups[set_bits]->set_bits = set_bits;
         }
         Group_append(all_groups[set_bits], minterms[i]);
     }
@@ -85,6 +105,7 @@ Table *createTable(Minterm **minterms, int n){
     //pass all_groups to table->groups and free all_groups
     for(int i = 0; i < MAX_MINTERM_BITSIZE; i++){
         if(all_groups[i]){
+            all_groups[i]->set_bits = i;
             Table_append(table, all_groups[i]);
         }
     }

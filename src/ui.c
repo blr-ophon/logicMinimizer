@@ -5,6 +5,11 @@
 
 
 void printMinterm(Minterm *minterm){
+    if(!minterm) return;
+
+    if(minterm->size == 0){
+        printf("0");
+    }
     for(int i = minterm->size-1; i >= 0; i--){
         printf("%d", minterm->bits[i]);
     }
@@ -12,7 +17,9 @@ void printMinterm(Minterm *minterm){
 }
 
 void printGroup(Group *group){
-    printf("GROUP %d:\n", group->set_bits);
+    if(!group) return;
+
+    printf("%d BITS GROUP:\nsize %d\n", group->set_bits, group->size);
     for(int i = 0; i < group->size; i++){
         printMinterm(group->minterms[i]);
     }
@@ -20,10 +27,15 @@ void printGroup(Group *group){
 }
 
 void printTable(Table *table){
-    printf("TABLE:\n");
+    if(!table) return;
+
+    printf("==========TABLE==========:\n");
+    printf("> size: %d\n", table->size);
+    printf("> max set bits: %d\n\n", table->max_setBits);
     for(int i = 0; i < table->size; i++){
         printGroup(table->groups[i]);
         printf("\n");
     }
+    printf("=========================:\n");
     printf("\n");
 }
