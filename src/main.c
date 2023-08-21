@@ -41,6 +41,10 @@ int main(void){
     Table *table = createTable(minterms, valid_terms_n);
     printTable(table);
 
+    Table *minimizedTable = minimizeTable(table);
+    printTable(minimizedTable);
+
+
 
     //Group minterms
     //Fill table with groups
@@ -59,15 +63,80 @@ bool termIsPresent(uint64_t newTerm, uint64_t *terms, int n){
     return false;
 }
 
+bool singleChangingBit(Minterm *m1, Minterm *m2, int *changing_bit_pos){
+    int changed_bits = 0;
+
+    int largest_size = m1->size >= m2->size? m1->size : m2->size;
+    for(int i = 0; i < largest_size; i++){
+        BitState m1_bit = i >= m1->size? BIT_0 : m1->bits[i];
+        BitState m2_bit = i >= m2->size? BIT_0 : m2->bits[i];
+        if(m1_bit != m2_bit){
+            *changing_bit_pos = i;  //TODO: Probably wrong. bits are in reverse order
+            changed_bits++;
+        }
+        if(changed_bits > 1){
+            return false;
+        }
+
+    }
+
+    return changed_bits == 1;
+}
+
 /*
  * Receives a table, minimizes it and return number of minimizations it
  * has made. When zero, no more minimizations are possible
  */
-int minimizeTable(Table *table){
+Table *minimizeTable(Table *table){
+    Table *newTable = calloc(1, sizeof(Table));
+    Group **all_groups = calloc(MAX_MINTERM_BITSIZE, sizeof(void*));
+
     for(int i = 0; i < table->size -1; i++){
-        //compare group i to group i+1
+        //compare minterms of group i to minterms of group i+1
+        Group *g1 = table->groups[i];
+        Group *g2 = table->groups[i+1];
+
+        for(int j = 0; j < g1->size; j++){
+            Minterm *m1 = g1->minterms[j];
+
+            for(int k = 0; k < g2->size; k++){
+                Minterm *m2 = g2->minterms[k];
+
+                int changing_bit_pos;
+
+                if(singleChangingBit(m1, m2, &changing_bit_pos)){
+                    //create new minterm with bit[changing_bit_pos] = BIT_X
+                    Minterm *largest_mt = m1->size >= m2->size? m1 : m2;
+                    Minterm *newMinterm = calloc(1, sizeof(Minterm));
+                    newMinterm->bits = calloc(largest_mt->size, sizeof(BitState));
+                    memcpy(newMinterm->bits, largest_mt->bits, largest_mt->size*sizeof(BitState));
+                    newMinterm->bits[changing_bit_pos] = BIT_X;
+                    newMinterm->size = largest_mt->size;
+                    newMinterm->set_bits = getSetBits(*newMinterm);
+
+                    //create new group if needed and append minterm to group 
+                    int set_bits = newMinterm->set_bits;
+                    if(!all_groups[set_bits]){
+                        all_groups[set_bits] = calloc(1, sizeof(Group));
+                        all_groups[set_bits]->set_bits = set_bits;
+                    }
+                    Group_append(all_groups[set_bits], newMinterm);
+                }
+            }
+        }
     }
-    return 0;
+
+    //pass all_groups to table->groups and free all_groups
+    for(int i = 0; i < MAX_MINTERM_BITSIZE; i++){
+        if(all_groups[i]){
+            all_groups[i]->set_bits = i;
+            Table_append(newTable, all_groups[i]);
+        }
+    }
+    free(all_groups);
+
+    //Old table is freed by caller
+    return newTable;
 }
 
 void Group_append(Group *group, Minterm *mt){
@@ -109,6 +178,7 @@ Table *createTable(Minterm **minterms, int n){
             Table_append(table, all_groups[i]);
         }
     }
+    free(all_groups);
 
     return table;
 }

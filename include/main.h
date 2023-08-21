@@ -42,15 +42,16 @@ typedef struct{
 }Group;
 
 typedef struct{
-    int size;           //number of groups
+    int size;               //number of groups
     int max_setBits;
     Group **groups;
 }Table;
 
 
 
-int minimizeTable(Table *table);
+Table *minimizeTable(Table *table);
 Table *createTable(Minterm **minterms, int n);
+Table *minimizeTable(Table *table);
 
 void Table_append(Table *table, Group *group);
 void Group_append(Group *group, Minterm *mt);

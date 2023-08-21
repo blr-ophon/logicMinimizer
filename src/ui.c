@@ -10,8 +10,16 @@ void printMinterm(Minterm *minterm){
     if(minterm->size == 0){
         printf("0");
     }
+
+    int leading_spaces = 15 - minterm->size;
+    printf("%0*d", leading_spaces, 0);
+
     for(int i = minterm->size-1; i >= 0; i--){
-        printf("%d", minterm->bits[i]);
+        if(minterm->bits[i] == BIT_X){
+            printf("-");
+        }else{
+            printf("%d", minterm->bits[i]);
+        }
     }
     printf("\n");
 }

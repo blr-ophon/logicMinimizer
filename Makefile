@@ -24,7 +24,6 @@ ${BUILD_DIR}/%.o: ${CFILES_DIR}/%.c
 clean:
 	rm -rf ${OBJECTS}
 	rm -rf ${EXEC}
-	rm -rf ${MERGED_OBJECT}
 
 run: ${EXEC}
 	${EXEC}
