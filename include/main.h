@@ -33,6 +33,8 @@ typedef struct{
     int size;               //number of bits
     int set_bits;
     BitState *bits;
+
+    bool prime_implicant;
 }Minterm;
 
 typedef struct{
@@ -45,6 +47,9 @@ typedef struct{
     int size;               //number of groups
     int max_setBits;
     Group **groups;
+
+    int unmin_terms_n;
+    Minterm **unmin_terms;  //terms that cannot be minimized 
 }Table;
 
 

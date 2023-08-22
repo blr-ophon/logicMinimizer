@@ -61,6 +61,10 @@ void printTable(Table *table){
         printf("\n");
     }
     printf("=========================:\n");
+    printf("> Prime implicants:\n");
+    for(int i = 0; i < table->unmin_terms_n; i++){
+        printMinterm(table->unmin_terms[i]);
+    }
     printf("\n");
 }
 

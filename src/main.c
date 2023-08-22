@@ -225,6 +225,26 @@ bool singleChangingBit(Minterm *m1, Minterm *m2, int *changing_bit_pos){
     return changed_bits == 1;
 }
 
+
+void append_unmin(Table *table, Minterm *minterm){
+    table->unmin_terms = realloc(table->unmin_terms, (table->unmin_terms_n+ 1) *sizeof(void*));
+    table->unmin_terms[table->unmin_terms_n] = minterm;
+    table->unmin_terms_n++;
+}
+
+void Group_append(Group *group, Minterm *mt){
+    group->minterms = realloc(group->minterms, (group->size + 1)*sizeof(void*));
+    group->minterms[group->size] = mt;
+    group->size++;
+}
+
+void Table_append(Table *table, Group *group){
+    table->groups = realloc(table->groups, (table->size + 1) *sizeof(void*));
+    table->groups[table->size] = group;
+    table->size++;
+}
+
+
 /*
  * Receives a table, minimizes it and return number of minimizations it
  * has made. When zero, no more minimizations are possible
@@ -234,6 +254,8 @@ Table *minimizeTable(Table *table, int *minimized_terms){
 
     Table *newTable = calloc(1, sizeof(Table));
     Group **all_groups = calloc(MAX_MINTERM_BITSIZE, sizeof(void*));
+
+
 
     for(int i = 0; i < table->size -1; i++){
         //compare minterms of group i to minterms of group i+1
@@ -251,6 +273,8 @@ Table *minimizeTable(Table *table, int *minimized_terms){
                 int changing_bit_pos;
 
                 if(singleChangingBit(m1, m2, &changing_bit_pos)){
+                    m1->prime_implicant = false;
+                    m2->prime_implicant = false;
                     (*minimized_terms)++;
 
                     //create new minterm with bit[changing_bit_pos] = BIT_X
@@ -274,11 +298,34 @@ Table *minimizeTable(Table *table, int *minimized_terms){
         }
     }
 
+
+    //pass all unminimized terms from old table to unmin_terms of newTable
+    newTable->unmin_terms = table->unmin_terms; 
+    newTable->unmin_terms_n = table->unmin_terms_n; 
+    for(int i = 0; i < table->size; i++){
+        Group *g = table->groups[i];
+
+        for(int j = 0; j < g->size; j++){
+            Minterm *m = g->minterms[j];
+            if(m->prime_implicant){
+                append_unmin(newTable, m);
+            }
+        }
+    }
+
+
     //pass all_groups to table->groups and free all_groups
     for(int i = 0; i < MAX_MINTERM_BITSIZE; i++){
         if(all_groups[i]){
-            all_groups[i]->set_bits = i;
-            Table_append(newTable, all_groups[i]);
+            Group *g = all_groups[i];
+            //set all minimized terms as prime implicants for the next minimization
+            for(int j = 0; j < g->size; j++){
+                Minterm *m = g->minterms[j];
+                m->prime_implicant = true;
+            }
+
+            g->set_bits = i;
+            Table_append(newTable, g);
         }
     }
     free(all_groups);
@@ -290,18 +337,6 @@ Table *minimizeTable(Table *table, int *minimized_terms){
         return table;
     }
     return newTable;
-}
-
-void Group_append(Group *group, Minterm *mt){
-    group->minterms = realloc(group->minterms, (group->size + 1)*sizeof(void*));
-    group->minterms[group->size] = mt;
-    group->size++;
-}
-
-void Table_append(Table *table, Group *group){
-    table->groups = realloc(table->groups, (table->size + 1) *sizeof(void*));
-    table->groups[table->size] = group;
-    table->size++;
 }
 
 Table *createTable(Minterm **minterms, int n){
@@ -342,6 +377,8 @@ Table *createTable(Minterm **minterms, int n){
 Minterm *IntToMinterm(uint64_t num, int largest_size){
     Minterm *minterm = calloc(1, sizeof(Minterm));
     minterm->size = (int)(log2(largest_size)) + 1;
+    minterm->prime_implicant = true;    //This will be set to 0 if minimization
+                                        //occurs in minimize_table
 
     //get number of set bits
     for(int i = 0; i < MAX_MINTERM_BITSIZE; i++){
