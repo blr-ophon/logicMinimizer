@@ -7,6 +7,7 @@
 void printMinterm(Minterm *minterm);
 void printGroup(Group *group);
 void printTable(Table *table);
+void printPChart(bool **Petrick_chart, int rows, int colums);
 
 
 #endif

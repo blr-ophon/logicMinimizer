@@ -38,14 +38,9 @@ int main(void){
         printMinterm(minterms[i]); 
     }
 
-    Table *table = createTable(minterms, valid_terms_n);
-    printTable(table);
+    Implicants *implicants  = getImplicants(minterms, valid_terms_n);
+    getPrimeImplicants(implicants, minterms, valid_terms_n);
 
-    Table *minimizedTable = minimizeTable(table);
-    printTable(minimizedTable);
-
-    minimizedTable = minimizeTable(minimizedTable);
-    printTable(minimizedTable);
 
 
 
@@ -60,22 +55,121 @@ int main(void){
 }
 
 
-typedef struct{
-    Minterm **minterms;
-    int size;
-}Implicants;
+bool equalMinterms(Minterm *m1, Minterm *m2){
+    if(!m1 || !m2){
+        return false;
+    }
+    if(m1->size != m2->size){
+        return false;
+    }
 
+    for(int i = 0; i < m1->size; i++){
+        if(m1->bits[i] != m2->bits[i]){
+            return false;
+        }
+    }
 
-void getImplicants(void){
-    //minimize table until no minimization is possible
+    return true;
 }
 
 
-void getPrimeImplicants(void){
-    //receives array of implicant minterms
-    //
+
+Implicants *getImplicants(Minterm **minterms, int n){
+    Implicants *implicants = calloc(1, sizeof(Implicants));
+
+    Table *table = createTable(minterms, n);
+    printTable(table);
+    //minimize table until no minimization is possible
+    int minimized_terms;
+    do{
+        table = minimizeTable(table, &minimized_terms);
+        if(!minimized_terms) 
+            break;
+        printTable(table);
+
+    }while(minimized_terms);
+
+
+    //Implicants from table to struct
+    Minterm *previous = NULL;
+    for(int i = 0; i < table->size; i++){
+        Group *group = table->groups[i];
+        for(int j = 0; j < group->size; j++){
+            if(!equalMinterms(group->minterms[j], previous)){
+                implicants->size++;
+                implicants->minterms = realloc(implicants->minterms, 
+                        (implicants->size) * sizeof(void*));
+                implicants->minterms[implicants->size-1] = group->minterms[j];
+                previous = group->minterms[j];
+            }
+        }
+    }
+     
+    //TODO: free table
+    for(int i = 0; i < implicants->size; i++){
+        printMinterm(implicants->minterms[i]);
+    }
+    return implicants;
+}
+
+
+bool PI_in_minterm(Minterm *Prime_implicant, Minterm *minterm){ 
+
+    for(int i = 0; i < Prime_implicant->size; i++){
+        if(Prime_implicant->bits[i] == BIT_X)
+            continue;
+
+        if(i >= minterm->size)
+            return false;
+
+        if(Prime_implicant->bits[i] != minterm->bits[i])
+            return false;
+    }
+    return true;
+}
+
+
+//Expects minterms sorted
+Implicants *getPrimeImplicants(Implicants *implicants, Minterm **minterms, int n){
     //create Petrick table with all implicants and provided
     //minterms
+
+    //convert all leading 0s to dont cares
+    for(int i = 0; i < implicants->size; i++){
+        //TODO: problably unnecessary, there are no leading 0s
+        Minterm *m = implicants->minterms[i];
+        for(int j = m->size-1; j >= 0; j--){
+            if(m->bits[j] != BIT_0){
+                break;
+            }
+            m->bits[j] = BIT_X;
+        }
+    }
+    
+    int rows = n;
+    int colums = implicants->size;
+    bool Petrick_chart[implicants->size][n];
+    memset(Petrick_chart, 0, sizeof(bool)*rows*colums);
+
+    for(int i = 0; i < implicants->size; i++){
+        Minterm *Prime_implicant = implicants->minterms[i];
+        for(int j = 0; j < n; j++){
+            Minterm *m = minterms[j];
+            if(PI_in_minterm(Prime_implicant, m)){
+                Petrick_chart[j][i] = true;
+            }
+        }
+    }
+
+    printf("\n");
+    for(int i = 0; i < colums; i++){
+        for(int j = 0; j < rows; j++){
+            printf("%d ", Petrick_chart[j][i]);
+        }
+        printf("\n");
+    }
+    printf("\n");
+
     //
     //for each implicant
     //compare non-x bits to all the minterms provided
@@ -83,6 +177,7 @@ void getPrimeImplicants(void){
     //fill table
     //
     //get prime implicants and return them
+    return NULL;
 }
 
 void PrimeImplicantsToEquation(void){
@@ -111,7 +206,7 @@ bool singleChangingBit(Minterm *m1, Minterm *m2, int *changing_bit_pos){
         BitState m1_bit = i >= m1->size? BIT_0 : m1->bits[i];
         BitState m2_bit = i >= m2->size? BIT_0 : m2->bits[i];
         if(m1_bit != m2_bit){
-            *changing_bit_pos = i;  //TODO: Probably wrong. bits are in reverse order
+            *changing_bit_pos = i;  
             changed_bits++;
         }
         if(changed_bits > 1){
@@ -127,12 +222,8 @@ bool singleChangingBit(Minterm *m1, Minterm *m2, int *changing_bit_pos){
  * Receives a table, minimizes it and return number of minimizations it
  * has made. When zero, no more minimizations are possible
  */
-Table *minimizeTable(Table *table){
-    if(!table){
-        return NULL;
-    }
-
-    int minimized_terms = 0;
+Table *minimizeTable(Table *table, int *minimized_terms){
+    *minimized_terms = 0;
 
     Table *newTable = calloc(1, sizeof(Table));
     Group **all_groups = calloc(MAX_MINTERM_BITSIZE, sizeof(void*));
@@ -153,7 +244,7 @@ Table *minimizeTable(Table *table){
                 int changing_bit_pos;
 
                 if(singleChangingBit(m1, m2, &changing_bit_pos)){
-                    minimized_terms++;
+                    (*minimized_terms)++;
 
                     //create new minterm with bit[changing_bit_pos] = BIT_X
                     Minterm *largest_mt = m1->size >= m2->size? m1 : m2;
@@ -185,9 +276,11 @@ Table *minimizeTable(Table *table){
     }
     free(all_groups);
     //Old table is freed by caller
+    //TODO: free old table
     
-    if(minimized_terms == 0){
-        return NULL;
+    if(*minimized_terms == 0){
+        //TODO: free newTable
+        return table;
     }
     return newTable;
 }

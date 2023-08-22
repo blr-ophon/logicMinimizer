@@ -49,9 +49,17 @@ typedef struct{
 
 
 
-Table *minimizeTable(Table *table);
+typedef struct{
+    Minterm **minterms;
+    int size;
+}Implicants;
+
+
+Implicants *getImplicants(Minterm **minterms, int n);
+Implicants *getPrimeImplicants(Implicants *implicants, Minterm **minterms, int n);
+
 Table *createTable(Minterm **minterms, int n);
-Table *minimizeTable(Table *table);
+Table *minimizeTable(Table *table, int *minimized_terms);
 
 void Table_append(Table *table, Group *group);
 void Group_append(Group *group, Minterm *mt);

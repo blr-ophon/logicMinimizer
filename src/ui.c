@@ -28,7 +28,7 @@ void printMinterm(Minterm *minterm){
     }
 
     int leading_spaces = 25 - minterm->size;
-    printf("%0*d", leading_spaces, 0);
+    //printf("%0*d", leading_spaces, 0);
 
     for(int i = minterm->size-1; i >= 0; i--){
         if(minterm->bits[i] == BIT_X){
@@ -61,5 +61,15 @@ void printTable(Table *table){
         printf("\n");
     }
     printf("=========================:\n");
+    printf("\n");
+}
+
+void printPChart(bool **Petrick_chart, int rows, int colums){
+    for(int i = 0; i < colums; i++){
+        for(int j = 0; j < rows; j++){
+            printf("%d ", Petrick_chart[colums][rows]);
+        }
+        printf("\n");
+    }
     printf("\n");
 }
