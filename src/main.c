@@ -1,5 +1,6 @@
 #include "main.h"
 #include "ui.h"
+#include "math.h"
 
 #define MAX_MINTERM_BITSIZE 64
 #define BUF_SIZE 256
@@ -13,6 +14,7 @@ int main(void){
     fgets(buf, BUF_SIZE, stdin);
     int terms_n = atoi(buf);
     int valid_terms_n = 0;
+    uint64_t largest_mt = 0;
 
     uint64_t *terms = calloc(terms_n, sizeof(uint64_t));
 
@@ -25,13 +27,16 @@ int main(void){
         if(!termIsPresent(newTerm, terms, terms_n)){
             //ignore repeated terms
             terms[valid_terms_n++] = newTerm;
+            if(newTerm > largest_mt){
+                largest_mt = newTerm;
+            }
         }
     }
 
     Minterm **minterms = calloc(valid_terms_n, sizeof(void*));
 
     for(int i = 0; i < valid_terms_n; i++){
-        minterms[i] = IntToMinterm(terms[i]);
+        minterms[i] = IntToMinterm(terms[i], largest_mt);
     }
 
     for(int i = 0; i < valid_terms_n; i++){
@@ -134,6 +139,7 @@ Implicants *getPrimeImplicants(Implicants *implicants, Minterm **minterms, int n
     //create Petrick table with all implicants and provided
     //minterms
 
+    /*
     //convert all leading 0s to dont cares
     for(int i = 0; i < implicants->size; i++){
         //TODO: problably unnecessary, there are no leading 0s
@@ -145,6 +151,7 @@ Implicants *getPrimeImplicants(Implicants *implicants, Minterm **minterms, int n
             m->bits[j] = BIT_X;
         }
     }
+    */
     
     int rows = n;
     int colums = implicants->size;
@@ -156,15 +163,15 @@ Implicants *getPrimeImplicants(Implicants *implicants, Minterm **minterms, int n
         for(int j = 0; j < n; j++){
             Minterm *m = minterms[j];
             if(PI_in_minterm(Prime_implicant, m)){
-                Petrick_chart[j][i] = true;
+                Petrick_chart[i][j] = true;
             }
         }
     }
 
     printf("\n");
-    for(int i = 0; i < colums; i++){
-        for(int j = 0; j < rows; j++){
-            printf("%d ", Petrick_chart[j][i]);
+    for(int i = 0; i < implicants->size; i++){
+        for(int j = 0; j < n; j++){
+            printf("%d ", Petrick_chart[i][j]);
         }
         printf("\n");
     }
@@ -332,13 +339,13 @@ Table *createTable(Minterm **minterms, int n){
 /*
  * Gets a 64bits minterm and converts it to a Minterm struct
  */
-Minterm *IntToMinterm(uint64_t num){
+Minterm *IntToMinterm(uint64_t num, int largest_size){
     Minterm *minterm = calloc(1, sizeof(Minterm));
+    minterm->size = (int)(log2(largest_size)) + 1;
 
-    //get size and number of set bits
+    //get number of set bits
     for(int i = 0; i < MAX_MINTERM_BITSIZE; i++){
         if((num >> i) & BIT_1){
-            minterm->size = i+1;
             minterm->set_bits ++;
         }
     }
