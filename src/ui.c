@@ -37,17 +37,18 @@ void printMinterm(Minterm *minterm){
             printf("%d", minterm->bits[i]);
         }
     }
-    printf("\n");
 }
 
 void printGroup(Group *group){
     if(!group) return;
 
-    printf("%d BITS GROUP:\nsize %d\n", group->set_bits, group->size);
+    printf("*-%d BITS GROUP:\n| size %d\n", group->set_bits, group->size);
     for(int i = 0; i < group->size; i++){
+        printf("| ");
         printMinterm(group->minterms[i]);
+        printf("\n");
     }
-    printf("\n");
+    printf("*--\n");
 }
 
 void printTable(Table *table){
@@ -58,13 +59,13 @@ void printTable(Table *table){
     printf("> max set bits: %d\n\n", table->max_setBits);
     for(int i = 0; i < table->size; i++){
         printGroup(table->groups[i]);
+    }
+    printf("*-Prime implicants:\n");
+    for(int i = 0; i < table->unmin_terms_n; i++){
+        printMinterm(table->unmin_terms[i]);
         printf("\n");
     }
     printf("=========================:\n");
-    printf("> Prime implicants:\n");
-    for(int i = 0; i < table->unmin_terms_n; i++){
-        printMinterm(table->unmin_terms[i]);
-    }
     printf("\n");
 }
 

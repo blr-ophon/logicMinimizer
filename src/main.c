@@ -41,6 +41,7 @@ int main(void){
 
     for(int i = 0; i < valid_terms_n; i++){
         printMinterm(minterms[i]); 
+        printf("\n");
     }
 
     Implicants *implicants  = getImplicants(minterms, valid_terms_n);
@@ -65,7 +66,7 @@ bool equalMinterms(Minterm *m1, Minterm *m2){
         return false;
     }
     if(m1->size != m2->size){
-        return false;
+        //return false;
     }
 
     for(int i = 0; i < m1->size; i++){
@@ -77,6 +78,12 @@ bool equalMinterms(Minterm *m1, Minterm *m2){
     return true;
 }
 
+
+void append_implicant(Implicants *implicants, Minterm *m){
+    implicants->minterms = realloc(implicants->minterms, (implicants->size+ 1) *sizeof(void*));
+    implicants->minterms[implicants->size] = m;
+    implicants->size++;
+}
 
 
 Implicants *getImplicants(Minterm **minterms, int n){
@@ -101,18 +108,23 @@ Implicants *getImplicants(Minterm **minterms, int n){
         Group *group = table->groups[i];
         for(int j = 0; j < group->size; j++){
             if(!equalMinterms(group->minterms[j], previous)){
-                implicants->size++;
-                implicants->minterms = realloc(implicants->minterms, 
-                        (implicants->size) * sizeof(void*));
-                implicants->minterms[implicants->size-1] = group->minterms[j];
+                append_implicant(implicants, group->minterms[j]);
                 previous = group->minterms[j];
             }
         }
     }
+
+    //Append unminimized implicants from table
+    for(int i = 0; i < table->unmin_terms_n; i++){
+        append_implicant(implicants, table->unmin_terms[i]);
+    }
+
      
     //TODO: free table
+    printf("IMPLICANTS: \n");
     for(int i = 0; i < implicants->size; i++){
         printMinterm(implicants->minterms[i]);
+        printf("\n");
     }
     return implicants;
 }
@@ -170,6 +182,9 @@ Implicants *getPrimeImplicants(Implicants *implicants, Minterm **minterms, int n
 
     printf("\n");
     for(int i = 0; i < implicants->size; i++){
+        printf("(");
+        printMinterm(implicants->minterms[i]);
+        printf("): ");
         for(int j = 0; j < n; j++){
             printf("%d ", Petrick_chart[i][j]);
         }
@@ -332,10 +347,6 @@ Table *minimizeTable(Table *table, int *minimized_terms){
     //Old table is freed by caller
     //TODO: free old table
     
-    if(*minimized_terms == 0){
-        //TODO: free newTable
-        return table;
-    }
     return newTable;
 }
 
