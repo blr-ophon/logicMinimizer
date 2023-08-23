@@ -27,7 +27,7 @@ void printMinterm(Minterm *minterm){
         printf("0");
     }
 
-    int leading_spaces = 25 - minterm->size;
+    //int leading_spaces = 25 - minterm->size;
     //printf("%0*d", leading_spaces, 0);
 
     for(int i = minterm->size-1; i >= 0; i--){
@@ -37,7 +37,6 @@ void printMinterm(Minterm *minterm){
             printf("%d", minterm->bits[i]);
         }
     }
-    printf("(%d)", minterm->prime_implicant);
 }
 
 void printGroup(Group *group){
@@ -61,9 +60,9 @@ void printTable(Table *table){
     for(int i = 0; i < table->size; i++){
         printGroup(table->groups[i]);
     }
-    printf("*-Prime implicants:\n");
-    for(int i = 0; i < table->unmin_terms_n; i++){
-        printMinterm(table->unmin_terms[i]);
+    printf("*-Implicants:\n");
+    for(int i = 0; i < table->implicants.size; i++){
+        printMinterm(table->implicants.minterms[i]);
         printf("\n");
     }
     printf("=========================:\n");

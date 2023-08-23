@@ -118,10 +118,11 @@ Implicants *getImplicants(Minterm **minterms, int n){
 
     previous = NULL;
     //Append unminimized implicants from table
-    for(int i = 0; i < table->unmin_terms_n; i++){
-        if(!equalMinterms(table->unmin_terms[i], previous)){
-            append_implicant(implicants, table->unmin_terms[i]);
-            previous = table->unmin_terms[i];
+    Implicants t_implicants = table->implicants;
+    for(int i = 0; i < t_implicants.size; i++){
+        if(!equalMinterms(t_implicants.minterms[i], previous)){
+            append_implicant(implicants, t_implicants.minterms[i]);
+            previous = t_implicants.minterms[i];
         }
     }
 
@@ -154,35 +155,39 @@ bool PI_in_minterm(Minterm *Prime_implicant, Minterm *minterm){
 
 //Expects minterms sorted
 Implicants *getPrimeImplicants(Implicants *implicants, Minterm **minterms, int n){
-    //create Petrick table with all implicants and provided
-    //minterms
 
-    /*
-    //convert all leading 0s to dont cares
-    for(int i = 0; i < implicants->size; i++){
-        //TODO: problably unnecessary, there are no leading 0s
-        Minterm *m = implicants->minterms[i];
-        for(int j = m->size-1; j >= 0; j--){
-            if(m->bits[j] != BIT_0){
-                break;
-            }
-            m->bits[j] = BIT_X;
-        }
-    }
-    */
-    
-    int rows = n;
-    int colums = implicants->size;
-    bool Petrick_chart[implicants->size][n];
-    memset(Petrick_chart, 0, sizeof(bool)*rows*colums);
+    Implicants *primeImplicants = calloc(1, sizeof(Implicants));
 
+    //create Petrick table with all implicants and provided minterms
+    int Petrick_chart[implicants->size][n];
+    memset(Petrick_chart, 0, sizeof(int)*implicants->size * n);
+
+    //for each implicant compare non-x bits to all the minterms provided
     for(int i = 0; i < implicants->size; i++){
         Minterm *Prime_implicant = implicants->minterms[i];
         for(int j = 0; j < n; j++){
             Minterm *m = minterms[j];
             if(PI_in_minterm(Prime_implicant, m)){
-                Petrick_chart[i][j] = true;
+                Petrick_chart[i][j] = 1;
             }
+        }
+    }
+        
+    //find prime implicants from the chart
+    for(int j = 0; j < n; j++){
+        int count = 0;
+        int impl_index = -1;
+        for(int i = 0; i < implicants->size; i++){
+            if(Petrick_chart[i][j]){
+                impl_index = i;
+                count++;
+            }
+            if(count > 1) break;
+        }
+
+        if(count == 1){
+            Petrick_chart[impl_index][j] = 2;
+            append_implicant(primeImplicants, implicants->minterms[impl_index]);
         }
     }
 
@@ -198,14 +203,8 @@ Implicants *getPrimeImplicants(Implicants *implicants, Minterm **minterms, int n
     }
     printf("\n");
 
-    //
-    //for each implicant
-    //compare non-x bits to all the minterms provided
-    //Important: all leading 0s become leading dont cares
-    //fill table
-    //
-    //get prime implicants and return them
-    return NULL;
+    //get prime implicants 
+    return primeImplicants;
 }
 
 void PrimeImplicantsToEquation(void){
@@ -246,13 +245,6 @@ bool singleChangingBit(Minterm *m1, Minterm *m2, int *changing_bit_pos){
     return changed_bits == 1;
 }
 
-
-void append_unmin(Table *table, Minterm *minterm){
-    table->unmin_terms = realloc(table->unmin_terms, (table->unmin_terms_n+ 1) *sizeof(void*));
-    table->unmin_terms[table->unmin_terms_n] = minterm;
-    table->unmin_terms_n++;
-}
-
 void Group_append(Group *group, Minterm *mt){
     group->minterms = realloc(group->minterms, (group->size + 1)*sizeof(void*));
     group->minterms[group->size] = mt;
@@ -271,6 +263,7 @@ void Table_append(Table *table, Group *group){
  * has made. When zero, no more minimizations are possible
  */
 Table *minimizeTable(Table *table, int *minimized_terms){
+    //TODO: minimized_terms is useless now
     *minimized_terms = 0;
 
     Table *newTable = calloc(1, sizeof(Table));
@@ -294,8 +287,8 @@ Table *minimizeTable(Table *table, int *minimized_terms){
                 int changing_bit_pos;
 
                 if(singleChangingBit(m1, m2, &changing_bit_pos)){
-                    m1->prime_implicant = false;
-                    m2->prime_implicant = false;
+                    m1->isImplicant = false;
+                    m2->isImplicant = false;
                     (*minimized_terms)++;
 
                     //create new minterm with bit[changing_bit_pos] = BIT_X
@@ -320,16 +313,15 @@ Table *minimizeTable(Table *table, int *minimized_terms){
     }
 
 
-    //pass all unminimized terms from old table to unmin_terms of newTable
-    newTable->unmin_terms = table->unmin_terms; 
-    newTable->unmin_terms_n = table->unmin_terms_n; 
+    //pass all unminimized terms from old table to implicants of newTable
+    memcpy(&newTable->implicants, &table->implicants, sizeof(Implicants));
     for(int i = 0; i < table->size; i++){
         Group *g = table->groups[i];
 
         for(int j = 0; j < g->size; j++){
             Minterm *m = g->minterms[j];
-            if(m->prime_implicant){
-                append_unmin(newTable, m);
+            if(m->isImplicant){
+                append_implicant(&newTable->implicants, m);
             }
         }
     }
@@ -342,7 +334,7 @@ Table *minimizeTable(Table *table, int *minimized_terms){
             //set all minimized terms as prime implicants for the next minimization
             for(int j = 0; j < g->size; j++){
                 Minterm *m = g->minterms[j];
-                m->prime_implicant = true;
+                m->isImplicant = true;
             }
 
             g->set_bits = i;
@@ -394,7 +386,7 @@ Table *createTable(Minterm **minterms, int n){
 Minterm *IntToMinterm(uint64_t num, int largest_size){
     Minterm *minterm = calloc(1, sizeof(Minterm));
     minterm->size = (int)(log2(largest_size)) + 1;
-    minterm->prime_implicant = true;    //This will be set to 0 if minimization
+    minterm->isImplicant = true;    //This will be set to 0 if minimization
                                         //occurs in minimize_table
 
     //get number of set bits

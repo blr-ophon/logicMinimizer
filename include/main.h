@@ -33,8 +33,7 @@ typedef struct{
     int size;               //number of bits
     int set_bits;
     BitState *bits;
-
-    bool prime_implicant;
+    bool isImplicant;       //set and reset during minimization to find implicants
 }Minterm;
 
 typedef struct{
@@ -44,21 +43,18 @@ typedef struct{
 }Group;
 
 typedef struct{
-    int size;               //number of groups
-    int max_setBits;
-    Group **groups;
-
-    int unmin_terms_n;
-    //TODO: rename to prime implicants
-    Minterm **unmin_terms;  //terms that cannot be minimized 
-}Table;
-
-
-
-typedef struct{
     Minterm **minterms;
     int size;
 }Implicants;
+
+typedef struct{
+    int size;               //number of groups
+    int max_setBits;
+    Group **groups;
+    Implicants implicants;  
+}Table;
+
+
 
 
 Implicants *getImplicants(Minterm **minterms, int n);
@@ -69,6 +65,7 @@ Table *minimizeTable(Table *table, int *minimized_terms);
 
 void Table_append(Table *table, Group *group);
 void Group_append(Group *group, Minterm *mt);
+void append_implicant(Implicants *implicants, Minterm *m);
 
 int getSetBits(Minterm minterm);
 Minterm *IntToMinterm(uint64_t num, int largest_size);
