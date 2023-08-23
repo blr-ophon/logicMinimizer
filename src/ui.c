@@ -37,6 +37,7 @@ void printMinterm(Minterm *minterm){
             printf("%d", minterm->bits[i]);
         }
     }
+    printf("(%d)", minterm->prime_implicant);
 }
 
 void printGroup(Group *group){

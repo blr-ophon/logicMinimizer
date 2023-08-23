@@ -93,13 +93,14 @@ Implicants *getImplicants(Minterm **minterms, int n){
     printTable(table);
     //minimize table until no minimization is possible
     int minimized_terms;
-    do{
+    while(table->size){
         table = minimizeTable(table, &minimized_terms);
         if(!minimized_terms) 
             break;
         printTable(table);
+    }
 
-    }while(minimized_terms);
+    printTable(table);
 
 
     //Implicants from table to struct
@@ -114,9 +115,14 @@ Implicants *getImplicants(Minterm **minterms, int n){
         }
     }
 
+
+    previous = NULL;
     //Append unminimized implicants from table
     for(int i = 0; i < table->unmin_terms_n; i++){
-        append_implicant(implicants, table->unmin_terms[i]);
+        if(!equalMinterms(table->unmin_terms[i], previous)){
+            append_implicant(implicants, table->unmin_terms[i]);
+            previous = table->unmin_terms[i];
+        }
     }
 
      

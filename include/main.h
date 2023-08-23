@@ -49,6 +49,7 @@ typedef struct{
     Group **groups;
 
     int unmin_terms_n;
+    //TODO: rename to prime implicants
     Minterm **unmin_terms;  //terms that cannot be minimized 
 }Table;
 
