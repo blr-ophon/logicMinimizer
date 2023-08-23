@@ -128,7 +128,7 @@ void matrixPrint(char *matrix, int h, int w)
     }
 }
 
-int printCircuit(char *str)
+void printCircuit(char *str)
 {
     string expression(str);
 
