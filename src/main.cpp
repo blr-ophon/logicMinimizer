@@ -16,7 +16,7 @@ int main(void){
     int valid_terms_n = 0;
     uint64_t largest_mt = 0;
 
-    uint64_t *terms = calloc(terms_n, sizeof(uint64_t));
+    uint64_t *terms = (uint64_t*) calloc(terms_n, sizeof(uint64_t));
 
     printf("\nTerms:\n");
 
@@ -33,7 +33,7 @@ int main(void){
         }
     }
 
-    Minterm **minterms = calloc(valid_terms_n, sizeof(void*));
+    Minterm **minterms = (Minterm**) calloc(valid_terms_n, sizeof(void*));
 
     for(int i = 0; i < valid_terms_n; i++){
         minterms[i] = IntToMinterm(terms[i], largest_mt);
@@ -56,8 +56,7 @@ int main(void){
     char *equation = PrimeImplicantsToEquation(primeImplicants);
     printf("\nEQUATION:\nZ = %s\n\n", equation);
 
-
-
+    printCircuit(equation);
 
 
     //Group minterms
@@ -75,7 +74,7 @@ int main(void){
 char *PrimeImplicantsToEquation(Implicants *implicants){
     //All implicants become ex.: (x1)'(x43)(x64), (x12)(x5)' etc
     //add a "+" sign between them
-    char *buf = calloc(BUF_SIZE, sizeof(char));
+    char *buf = (char*) calloc(BUF_SIZE, sizeof(char));
     int terms_count = 0;
 
     for(int i = 0; i <implicants->size; i++){
@@ -127,14 +126,14 @@ bool equalMinterms(Minterm *m1, Minterm *m2){
 
 
 void append_implicant(Implicants *implicants, Minterm *m){
-    implicants->minterms = realloc(implicants->minterms, (implicants->size+ 1) *sizeof(void*));
+    implicants->minterms = (Minterm**) realloc(implicants->minterms, (implicants->size+ 1) *sizeof(void*));
     implicants->minterms[implicants->size] = m;
     implicants->size++;
 }
 
 
 Implicants *getImplicants(Minterm **minterms, int n){
-    Implicants *implicants = calloc(1, sizeof(Implicants));
+    Implicants *implicants = (Implicants*) calloc(1, sizeof(Implicants));
 
     Table *table = createTable(minterms, n);
     printTable(table);
@@ -203,7 +202,7 @@ bool PI_in_minterm(Minterm *Prime_implicant, Minterm *minterm){
 //Expects minterms sorted
 Implicants *getPrimeImplicants(Implicants *implicants, Minterm **minterms, int n){
 
-    Implicants *primeImplicants = calloc(1, sizeof(Implicants));
+    Implicants *primeImplicants = (Implicants*) calloc(1, sizeof(Implicants));
 
     //create Petrick table with all implicants and provided minterms
     int Petrick_chart[implicants->size][n];
@@ -287,13 +286,13 @@ bool singleChangingBit(Minterm *m1, Minterm *m2, int *changing_bit_pos){
 }
 
 void Group_append(Group *group, Minterm *mt){
-    group->minterms = realloc(group->minterms, (group->size + 1)*sizeof(void*));
+    group->minterms = (Minterm**) realloc(group->minterms, (group->size + 1)*sizeof(void*));
     group->minterms[group->size] = mt;
     group->size++;
 }
 
 void Table_append(Table *table, Group *group){
-    table->groups = realloc(table->groups, (table->size + 1) *sizeof(void*));
+    table->groups = (Group**) realloc(table->groups, (table->size + 1) *sizeof(void*));
     table->groups[table->size] = group;
     table->size++;
 }
@@ -307,8 +306,8 @@ Table *minimizeTable(Table *table, int *minimized_terms){
     //TODO: minimized_terms is useless now
     *minimized_terms = 0;
 
-    Table *newTable = calloc(1, sizeof(Table));
-    Group **all_groups = calloc(MAX_MINTERM_BITSIZE, sizeof(void*));
+    Table *newTable = (Table*) calloc(1, sizeof(Table));
+    Group **all_groups = (Group**) calloc(MAX_MINTERM_BITSIZE, sizeof(void*));
 
 
 
@@ -334,8 +333,8 @@ Table *minimizeTable(Table *table, int *minimized_terms){
 
                     //create new minterm with bit[changing_bit_pos] = BIT_X
                     Minterm *largest_mt = m1->size >= m2->size? m1 : m2;
-                    Minterm *newMinterm = calloc(1, sizeof(Minterm));
-                    newMinterm->bits = calloc(largest_mt->size, sizeof(BitState));
+                    Minterm *newMinterm = (Minterm*) calloc(1, sizeof(Minterm));
+                    newMinterm->bits = (BitState*) calloc(largest_mt->size, sizeof(BitState));
                     memcpy(newMinterm->bits, largest_mt->bits, largest_mt->size*sizeof(BitState));
                     newMinterm->bits[changing_bit_pos] = BIT_X;
                     newMinterm->size = largest_mt->size;
@@ -344,7 +343,7 @@ Table *minimizeTable(Table *table, int *minimized_terms){
                     //create new group if needed and append minterm to group 
                     int set_bits = newMinterm->set_bits;
                     if(!all_groups[set_bits]){
-                        all_groups[set_bits] = calloc(1, sizeof(Group));
+                        all_groups[set_bits] = (Group*) calloc(1, sizeof(Group));
                         all_groups[set_bits]->set_bits = set_bits;
                     }
                     Group_append(all_groups[set_bits], newMinterm);
@@ -390,8 +389,8 @@ Table *minimizeTable(Table *table, int *minimized_terms){
 }
 
 Table *createTable(Minterm **minterms, int n){
-    Table *table = calloc(1, sizeof(Table));
-    Group **all_groups = calloc(MAX_MINTERM_BITSIZE, sizeof(void*));
+    Table *table = (Table*) calloc(1, sizeof(Table));
+    Group **all_groups = (Group**) calloc(MAX_MINTERM_BITSIZE, sizeof(void*));
 
     //get maximum number of set bits and fill "existing groups"
     table->max_setBits = 0;
@@ -403,7 +402,7 @@ Table *createTable(Minterm **minterms, int n){
 
         //append to all_groups[set_bits]
         if(!all_groups[set_bits]){
-            all_groups[set_bits] = calloc(1, sizeof(Group));
+            all_groups[set_bits] = (Group*) calloc(1, sizeof(Group));
             all_groups[set_bits]->set_bits = set_bits;
         }
         Group_append(all_groups[set_bits], minterms[i]);
@@ -425,7 +424,7 @@ Table *createTable(Minterm **minterms, int n){
  * Gets a 64bits minterm and converts it to a Minterm struct
  */
 Minterm *IntToMinterm(uint64_t num, int largest_size){
-    Minterm *minterm = calloc(1, sizeof(Minterm));
+    Minterm *minterm = (Minterm*) calloc(1, sizeof(Minterm));
     minterm->size = (int)(log2(largest_size)) + 1;
     minterm->isImplicant = true;    //This will be set to 0 if minimization
                                         //occurs in minimize_table
@@ -438,9 +437,9 @@ Minterm *IntToMinterm(uint64_t num, int largest_size){
     }
 
     //fill bit array
-    minterm->bits = calloc(minterm->size, sizeof(BitState));
+    minterm->bits = (BitState*) calloc(minterm->size, sizeof(BitState));
     for(int i = 0; i < minterm->size; i++){
-        minterm->bits[i] = (num >> i) & 0x1;
+        minterm->bits[i] = (BitState) ((num >> i) & 0x1);
     }
 
     return minterm;
