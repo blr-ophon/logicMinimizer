@@ -45,7 +45,17 @@ int main(void){
     }
 
     Implicants *implicants  = getImplicants(minterms, valid_terms_n);
-    getPrimeImplicants(implicants, minterms, valid_terms_n);
+
+    Implicants *primeImplicants = getPrimeImplicants(implicants, minterms, valid_terms_n);
+    printf("PRIME IMPLICANTS:\n");
+    for(int i = 0; i < primeImplicants->size; i++){
+        printMinterm(primeImplicants->minterms[i]);
+        printf("\n");
+    }
+
+    char *equation = PrimeImplicantsToEquation(primeImplicants);
+    printf("\nEQUATION:\nZ = %s\n\n", equation);
+
 
 
 
@@ -56,8 +66,45 @@ int main(void){
     //Petrick's algorithm
     //convert to boolean expression and print
     free(terms);
+    free(equation);
     //TODO: free table and minterms
     return 0; 
+}
+
+
+char *PrimeImplicantsToEquation(Implicants *implicants){
+    //All implicants become ex.: (x1)'(x43)(x64), (x12)(x5)' etc
+    //add a "+" sign between them
+    char *buf = calloc(BUF_SIZE, sizeof(char));
+    int terms_count = 0;
+
+    for(int i = 0; i <implicants->size; i++){
+        Minterm *m = implicants->minterms[i];
+        int bits_count = 0;
+        if(terms_count > 0){
+            snprintf(buf + strlen(buf), BUF_SIZE - strlen(buf), " + ");
+        }
+            
+        for(int j = m->size-1; j >= 0 ; j--){
+            if(m->bits[j] == BIT_X) continue;
+
+            if(bits_count > 0){
+                snprintf(buf + strlen(buf), BUF_SIZE - strlen(buf), "*");
+            }
+
+            //append xj or xj'
+            snprintf(buf+ strlen(buf), BUF_SIZE - strlen(buf), "x%d", j);
+            if(!m->bits[j]){
+                snprintf(buf+ strlen(buf), BUF_SIZE - strlen(buf), "'");
+            }
+
+            bits_count++;
+        }
+        terms_count++;
+
+    }
+
+    return buf;
 }
 
 
@@ -191,7 +238,7 @@ Implicants *getPrimeImplicants(Implicants *implicants, Minterm **minterms, int n
         }
     }
 
-    printf("\n");
+    printf("\nPETRICK CHART\n");
     for(int i = 0; i < implicants->size; i++){
         printf("(");
         printMinterm(implicants->minterms[i]);
@@ -207,12 +254,6 @@ Implicants *getPrimeImplicants(Implicants *implicants, Minterm **minterms, int n
     return primeImplicants;
 }
 
-void PrimeImplicantsToEquation(void){
-    //All implicants become ex.: (x1)'(x43)(x64), (x12)(x5)' etc
-    //add a "+" sign between them
-    //
-    //Print equation and circuit
-}
 
 bool termIsPresent(uint64_t newTerm, uint64_t *terms, int n){
     //Temporary workaround 

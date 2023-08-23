@@ -59,6 +59,7 @@ typedef struct{
 
 Implicants *getImplicants(Minterm **minterms, int n);
 Implicants *getPrimeImplicants(Implicants *implicants, Minterm **minterms, int n);
+char *PrimeImplicantsToEquation(Implicants *implicants);
 
 Table *createTable(Minterm **minterms, int n);
 Table *minimizeTable(Table *table, int *minimized_terms);
