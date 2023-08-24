@@ -7,6 +7,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
+#include <ncurses.h>
 #include "gates.h"
 
 //TODO:
@@ -22,6 +23,13 @@
  * minterms are int arrays (unlimited length, can contain 1, 0 or -)
  * tables are minterms organized in groups
  */
+
+typedef struct{
+    WINDOW *borders;
+    WINDOW *buf;
+}Panel;
+
+
 
 
 typedef enum{

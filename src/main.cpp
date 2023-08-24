@@ -5,9 +5,12 @@
 #define MAX_MINTERM_BITSIZE 64
 #define BUF_SIZE 256
 
-
+Panel Table_p;
 
 int main(void){
+    
+
+
     //Get number of minterms and minterms
     char buf[BUF_SIZE] = {0};
     printf("\nNumber of terms:");
@@ -40,23 +43,23 @@ int main(void){
     }
 
     for(int i = 0; i < valid_terms_n; i++){
-        printMinterm(minterms[i]); 
+        //printMinterm(minterms[i]); 
         printf("\n");
     }
+
+    menu_init();
+    menu_TableWindow(&Table_p);
 
     Implicants *implicants  = getImplicants(minterms, valid_terms_n);
 
     Implicants *primeImplicants = getPrimeImplicants(implicants, minterms, valid_terms_n);
-    printf("PRIME IMPLICANTS:\n");
-    for(int i = 0; i < primeImplicants->size; i++){
-        printMinterm(primeImplicants->minterms[i]);
-        printf("\n");
-    }
+    wprintw(Table_p.buf, "PRIME IMPLICANTS:\n");
+    printImplicants(&Table_p, primeImplicants);
 
     char *equation = PrimeImplicantsToEquation(primeImplicants);
-    printf("\nEQUATION:\nZ = %s\n\n", equation);
+    wprintw(Table_p.buf, "\nEQUATION:\nZ = %s\n\n", equation);
 
-    printCircuit(equation);
+    //printCircuit(equation);
 
 
     //Group minterms
@@ -67,6 +70,35 @@ int main(void){
     free(terms);
     free(equation);
     //TODO: free table and minterms
+    
+    
+    
+    
+   
+    int line = 0; 
+    int column  = 0;
+    prefresh(Table_p.buf, line, column, 7, 2, 45, 48); 
+
+    bool running = true;
+    while(running){
+        char c = getch();
+        switch(c){
+            case 'j':
+                if(line < PAD_LINES_SIZE)
+                    line++;
+                prefresh(Table_p.buf, line, 0, 7, 2, 45, 48); 
+                break;
+            case 'k':
+                if(line > 0)
+                    line--;
+                prefresh(Table_p.buf, line, 0, 7, 2, 45, 48); 
+                break;
+            case 'q':
+                running = false;
+                break;
+        }
+    }
+    endwin();
     return 0; 
 }
 
@@ -136,17 +168,17 @@ Implicants *getImplicants(Minterm **minterms, int n){
     Implicants *implicants = (Implicants*) calloc(1, sizeof(Implicants));
 
     Table *table = createTable(minterms, n);
-    printTable(table);
+    printTable(&Table_p, table);
     //minimize table until no minimization is possible
     int minimized_terms;
     while(table->size){
         table = minimizeTable(table, &minimized_terms);
         if(!minimized_terms) 
             break;
-        printTable(table);
+        printTable(&Table_p, table);
     }
 
-    printTable(table);
+    printTable(&Table_p, table);
 
 
     //Implicants from table to struct
@@ -174,11 +206,9 @@ Implicants *getImplicants(Minterm **minterms, int n){
 
      
     //TODO: free table
-    printf("IMPLICANTS: \n");
-    for(int i = 0; i < implicants->size; i++){
-        printMinterm(implicants->minterms[i]);
-        printf("\n");
-    }
+    wprintw(Table_p.buf, "IMPLICANTS: \n");
+    printImplicants(&Table_p, implicants);
+
     return implicants;
 }
 
@@ -237,17 +267,17 @@ Implicants *getPrimeImplicants(Implicants *implicants, Minterm **minterms, int n
         }
     }
 
-    printf("\nPETRICK CHART\n");
-    for(int i = 0; i < implicants->size; i++){
-        printf("(");
-        printMinterm(implicants->minterms[i]);
-        printf("): ");
-        for(int j = 0; j < n; j++){
-            printf("%d ", Petrick_chart[i][j]);
-        }
-        printf("\n");
-    }
-    printf("\n");
+    //printf("\nPETRICK CHART\n");
+    //for(int i = 0; i < implicants->size; i++){
+    //    printf("(");
+    //    printMinterm(implicants->minterms[i]);
+    //    printf("): ");
+    //    for(int j = 0; j < n; j++){
+    //        printf("%d ", Petrick_chart[i][j]);
+    //    }
+    //    printf("\n");
+    //}
+    //printf("\n");
 
     //get prime implicants 
     return primeImplicants;

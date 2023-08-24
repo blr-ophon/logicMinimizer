@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <ncurses.h>
 
 #include "ui.h"
 
@@ -20,53 +21,72 @@
  */
 
 
-void printMinterm(Minterm *minterm){
+
+void menu_TableWindow(Panel *pan){
+    pan->borders = newwin(48,50,5,1); 
+    pan->buf = newpad(PAD_LINES_SIZE, 48);
+    //pan->buf = newpad(45,48,7,2); 
+
+    refresh();
+    box(pan->borders, 0, 0);
+    wprintw(pan->borders, "|1|-|Quine-McCluskey Minimization|");
+    wrefresh(pan->borders);
+    //scrollok(pan->contents, true);
+}
+
+
+void menu_init(void){
+    initscr();
+    cbreak();   //ctrl c exits the program
+    noecho();     //characters on screen
+}
+
+void printMinterm(Panel *pan, Minterm *minterm){
     if(!minterm) return;
 
     if(minterm->size == 0){
-        printf("0");
+        wprintw(pan->buf, "0");
     }
 
     //int leading_spaces = 25 - minterm->size;
-    //printf("%0*d", leading_spaces, 0);
+    //wprintw(pan->contents, "%0*d", leading_spaces, 0);
 
     for(int i = minterm->size-1; i >= 0; i--){
         if(minterm->bits[i] == BIT_X){
-            printf("-");
+            wprintw(pan->buf, "-");
         }else{
-            printf("%d", minterm->bits[i]);
+            wprintw(pan->buf, "%d", minterm->bits[i]);
         }
     }
 }
 
-void printGroup(Group *group){
+void printGroup(Panel *pan, Group *group){
     if(!group) return;
 
-    printf("*-%d BITS GROUP:\n| size %d\n", group->set_bits, group->size);
+    wprintw(pan->buf, "*-%d BITS GROUP:\n| size %d\n", group->set_bits, group->size);
     for(int i = 0; i < group->size; i++){
-        printf("| ");
-        printMinterm(group->minterms[i]);
-        printf("\n");
+        wprintw(pan->buf, "| ");
+        printMinterm(pan, group->minterms[i]);
+        wprintw(pan->buf, "\n");
     }
-    printf("*--\n");
+    wprintw(pan->buf, "*--\n");
 }
 
-void printTable(Table *table){
+void printTable(Panel *pan, Table *table){
     if(!table) return;
 
-    printf("==========TABLE==========:\n");
-    printf("> size: %d\n", table->size);
-    printf("> max set bits: %d\n\n", table->max_setBits);
+    wprintw(pan->buf, "==========TABLE==========:\n");
+    wprintw(pan->buf, "> size: %d\n", table->size);
+    wprintw(pan->buf, "> max set bits: %d\n\n", table->max_setBits);
     for(int i = 0; i < table->size; i++){
-        printGroup(table->groups[i]);
+        printGroup(pan, table->groups[i]);
     }
-    printf("*-Implicants:\n");
+    wprintw(pan->buf, "*-Implicants:\n");
     for(int i = 0; i < table->implicants.size; i++){
-        printMinterm(table->implicants.minterms[i]);
-        printf("\n");
+        printMinterm(pan, table->implicants.minterms[i]);
+        wprintw(pan->buf, "\n");
     }
-    printf("=========================:\n");
-    printf("\n");
+    wprintw(pan->buf, "=========================:\n\n");
 }
 
 void printPChart(bool **Petrick_chart, int rows, int colums){
@@ -77,4 +97,11 @@ void printPChart(bool **Petrick_chart, int rows, int colums){
         printf("\n");
     }
     printf("\n");
+}
+
+void printImplicants(Panel *pan, Implicants *implicants){
+    for(int i = 0; i < implicants->size; i++){
+        printMinterm(pan, implicants->minterms[i]);
+        wprintw(pan->buf, "\n");
+    }
 }

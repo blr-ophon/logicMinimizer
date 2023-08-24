@@ -189,17 +189,15 @@ void printCircuit(char *str)
 
     width += 4;
 
-    width += expression.length();
-
     char matrix[height * width];
     for (int i = 0; i < height*width; i++) matrix[i] = ' ';
     
     int  baseY = inputs.size();
 
     {
-        int x = width - 4 - expression.length();
+        int x = width - 4;
         int y = baseY + ((height-baseY) / 2);
-        matrixPut(matrix, height, width, x, y, repeat(HORIZ, 4) + expression, Direction::RIGHT);
+        matrixPut(matrix, height, width, x, y, repeat(HORIZ, 4), Direction::RIGHT);
     }
 
     {

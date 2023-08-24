@@ -4,7 +4,7 @@ CFLAGS = -g -Wall -Wextra -pedantic $(OPT)
 #CFLAGS = -std=gnu99 -fPIC -g -Wall -Wextra -pedantic $(OPT) -fsanitize=address -fno-omit-frame-pointer
 
 INCLUDES= -I ./include
-LIBRARIES= -lm
+LIBRARIES= -lm -lncurses
 
 CFILES_DIR := ./src
 BUILD_DIR := ./build
