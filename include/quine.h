@@ -7,8 +7,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
-#include <ncurses.h>
-#include "gates.h"
+#include <math.h>
 
 //TODO:
 //ncurses interface with printed tables and scrolling
@@ -23,12 +22,6 @@
  * minterms are int arrays (unlimited length, can contain 1, 0 or -)
  * tables are minterms organized in groups
  */
-
-typedef struct{
-    WINDOW *borders;
-    WINDOW *buf;
-}Panel;
-
 
 
 
@@ -63,10 +56,12 @@ typedef struct{
     Implicants implicants;  
 }Table;
 
+struct panel;
 
+//TODO change this name
+void QM_tables(struct panel *Table_p, struct panel *Circuit_p, uint64_t *terms, int terms_n);
 
-
-Implicants *getImplicants(Minterm **minterms, int n);
+Implicants *getImplicants(struct panel *pan, Minterm **minterms, int n);
 Implicants *getPrimeImplicants(Implicants *implicants, Minterm **minterms, int n);
 char *PrimeImplicantsToEquation(Implicants *implicants);
 

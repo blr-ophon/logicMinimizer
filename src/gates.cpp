@@ -1,4 +1,3 @@
-#include "gates.h"
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -10,7 +9,11 @@
 #include <cmath>
 #include <vector>
 
+#include "gates.h"
+#include "ui.h"
+
 using namespace std;
+
 
 vector<string> split(const string str, const string delim)
 {
@@ -119,17 +122,26 @@ void matrixPut(char *matrix, int h, int w, int x, int y, const string s, Directi
     }
 }
 
-void matrixPrint(char *matrix, int h, int w)
+void matrixPrint(Panel *pan, char *matrix, int h, int w)
 {
     for (int i = 0; i < (h * w); i++)
     {
+        /*
         cout << matrix[i];
         if ((i+1)%w == 0) cout << endl;
+        */
+
+        wprintw(pan->buf, "%c", matrix[i]);
+        if ((i+1)%w == 0){
+            wprintw(pan->buf, "\n");
+        }
     }
 }
 
-void printCircuit(char *str)
+void printCircuit(Panel *pan, char *str)
 {
+    menu_CircuitWindow(pan); 
+
     string expression(str);
 
     expression.erase(remove(expression.begin(), expression.end(), ' '), expression.end());
@@ -337,7 +349,9 @@ void printCircuit(char *str)
         }
     }
 
-    cout << endl;
-    matrixPrint(matrix, height, width);
-    cout << endl;
+    //cout << endl;
+    wprintw(pan->buf, "\n");
+    matrixPrint(pan, matrix, height, width);
+    //cout << endl;
+    wprintw(pan->buf, "\n");
 }

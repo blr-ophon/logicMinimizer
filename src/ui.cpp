@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <string.h>
-#include <ncurses.h>
 
 #include "ui.h"
 
@@ -25,13 +24,24 @@
 void menu_TableWindow(Panel *pan){
     pan->borders = newwin(48,50,5,1); 
     pan->buf = newpad(PAD_LINES_SIZE, 48);
-    //pan->buf = newpad(45,48,7,2); 
+    pan->buf_line = 0;
 
     refresh();
     box(pan->borders, 0, 0);
     wprintw(pan->borders, "|1|-|Quine-McCluskey Minimization|");
     wrefresh(pan->borders);
-    //scrollok(pan->contents, true);
+}
+
+void menu_CircuitWindow(Panel *pan){
+    pan->borders = newwin(48,50,5,51); 
+    pan->buf = newpad(PAD_LINES_SIZE, 48);
+    pan->buf_line = 0;
+
+
+    refresh();
+    box(pan->borders, 0, 0);
+    wprintw(pan->borders, "|2|-|Circuit Visualization|");
+    wrefresh(pan->borders);
 }
 
 

@@ -1,65 +1,43 @@
-#include "main.h"
+#include "quine.h"
 #include "ui.h"
-#include "math.h"
 
 #define MAX_MINTERM_BITSIZE 64
 #define BUF_SIZE 256
 
-Panel Table_p;
 
-int main(void){
-    
-
-
-    //Get number of minterms and minterms
-    char buf[BUF_SIZE] = {0};
-    printf("\nNumber of terms:");
-    fgets(buf, BUF_SIZE, stdin);
-    int terms_n = atoi(buf);
-    int valid_terms_n = 0;
+void QM_tables(Panel *Table_p, Panel *Circuit_p, uint64_t *terms, int n){
+    //get largest minterm
     uint64_t largest_mt = 0;
-
-    uint64_t *terms = (uint64_t*) calloc(terms_n, sizeof(uint64_t));
-
-    printf("\nTerms:\n");
-
-
-    for(int i = 0; i < terms_n; i++){
-        fgets(buf, BUF_SIZE, stdin);
-        uint64_t newTerm = atoi(buf);
-        if(!termIsPresent(newTerm, terms, terms_n)){
-            //ignore repeated terms
-            terms[valid_terms_n++] = newTerm;
-            if(newTerm > largest_mt){
-                largest_mt = newTerm;
-            }
+    for(int i = 0; i < n; i++){
+        uint64_t tmp = terms[i];
+        if(tmp > largest_mt){
+            largest_mt = tmp;
         }
     }
 
-    Minterm **minterms = (Minterm**) calloc(valid_terms_n, sizeof(void*));
+    //convert uint64_t to Minterm struct
+    Minterm **minterms = (Minterm**) calloc(n, sizeof(void*));
 
-    for(int i = 0; i < valid_terms_n; i++){
+    for(int i = 0; i < n; i++){
         minterms[i] = IntToMinterm(terms[i], largest_mt);
     }
 
-    for(int i = 0; i < valid_terms_n; i++){
-        //printMinterm(minterms[i]); 
-        printf("\n");
+    for(int i = 0; i < n; i++){
+        printMinterm(Table_p, minterms[i]); 
+        wprintw(Table_p->buf, "\n");
     }
 
-    menu_init();
-    menu_TableWindow(&Table_p);
 
-    Implicants *implicants  = getImplicants(minterms, valid_terms_n);
+    Implicants *implicants  = getImplicants(Table_p, minterms, n);
 
-    Implicants *primeImplicants = getPrimeImplicants(implicants, minterms, valid_terms_n);
-    wprintw(Table_p.buf, "PRIME IMPLICANTS:\n");
-    printImplicants(&Table_p, primeImplicants);
+    Implicants *primeImplicants = getPrimeImplicants(implicants, minterms, n);
+    wprintw(Table_p->buf, "PRIME IMPLICANTS:\n");
+    printImplicants(Table_p, primeImplicants);
 
     char *equation = PrimeImplicantsToEquation(primeImplicants);
-    wprintw(Table_p.buf, "\nEQUATION:\nZ = %s\n\n", equation);
+    wprintw(Table_p->buf, "\nEQUATION:\nZ = %s\n\n", equation);
 
-    //printCircuit(equation);
+    printCircuit(Circuit_p, equation);
 
 
     //Group minterms
@@ -70,36 +48,6 @@ int main(void){
     free(terms);
     free(equation);
     //TODO: free table and minterms
-    
-    
-    
-    
-   
-    int line = 0; 
-    int column  = 0;
-    prefresh(Table_p.buf, line, column, 7, 2, 45, 48); 
-
-    bool running = true;
-    while(running){
-        char c = getch();
-        switch(c){
-            case 'j':
-                if(line < PAD_LINES_SIZE)
-                    line++;
-                prefresh(Table_p.buf, line, 0, 7, 2, 45, 48); 
-                break;
-            case 'k':
-                if(line > 0)
-                    line--;
-                prefresh(Table_p.buf, line, 0, 7, 2, 45, 48); 
-                break;
-            case 'q':
-                running = false;
-                break;
-        }
-    }
-    endwin();
-    return 0; 
 }
 
 
@@ -164,21 +112,21 @@ void append_implicant(Implicants *implicants, Minterm *m){
 }
 
 
-Implicants *getImplicants(Minterm **minterms, int n){
+Implicants *getImplicants(struct panel *pan, Minterm **minterms, int n){
     Implicants *implicants = (Implicants*) calloc(1, sizeof(Implicants));
 
     Table *table = createTable(minterms, n);
-    printTable(&Table_p, table);
+    printTable(pan, table);
     //minimize table until no minimization is possible
     int minimized_terms;
     while(table->size){
         table = minimizeTable(table, &minimized_terms);
         if(!minimized_terms) 
             break;
-        printTable(&Table_p, table);
+        printTable(pan, table);
     }
 
-    printTable(&Table_p, table);
+    printTable(pan, table);
 
 
     //Implicants from table to struct
@@ -206,8 +154,8 @@ Implicants *getImplicants(Minterm **minterms, int n){
 
      
     //TODO: free table
-    wprintw(Table_p.buf, "IMPLICANTS: \n");
-    printImplicants(&Table_p, implicants);
+    wprintw(pan->buf, "IMPLICANTS: \n");
+    printImplicants(pan, implicants);
 
     return implicants;
 }
