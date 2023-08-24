@@ -22,9 +22,11 @@
 
 
 void menu_TableWindow(Panel *pan){
-    pan->borders = newwin(48,50,5,1); 
-    pan->buf = newpad(PAD_LINES_SIZE, 48);
+    pan->borders = newwin(48,50,5,1); //height, width, y, x
+    pan->buf = newpad(PAD_LINES_SIZE, 48);      //height, width
     pan->buf_line = 0;
+    pan->buf_yPos = 7;
+    pan->buf_xPos = 2;
 
     refresh();
     box(pan->borders, 0, 0);
@@ -33,9 +35,11 @@ void menu_TableWindow(Panel *pan){
 }
 
 void menu_CircuitWindow(Panel *pan){
-    pan->borders = newwin(48,50,5,51); 
-    pan->buf = newpad(PAD_LINES_SIZE, 48);
+    pan->borders = newwin(48,50,5,51);          //height, width, y, x
+    pan->buf = newpad(PAD_LINES_SIZE, 48);      //height, width
     pan->buf_line = 0;
+    pan->buf_yPos = 7;
+    pan->buf_xPos = 52;
 
 
     refresh();

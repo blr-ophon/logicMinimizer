@@ -6,7 +6,7 @@
 //at the end of printing, it gets cursor values,
 //so to print at the end first
 
-Panel ctx_pan;
+Panel *ctx_pan;
 
 uint64_t *getTerms(int *n_out){
     char buf[BUF_SIZE] = {0};
@@ -59,11 +59,12 @@ int main(void){
      * Start program loop
      */
 
+    //prerefresh: pad, y, x,  ret_ymin, ret_xmin, ret_ymax, ret_xmax
     prefresh(Table_p.buf, Table_p.buf_line, 0, 7, 2, 48, 48); 
-    prefresh(Circuit_p.buf, Circuit_p.buf_line, 0, 7, 52, 48, 48+52); 
+    prefresh(Circuit_p.buf, Circuit_p.buf_line, 0, 7, 52, 48, 48+50); 
     
     //start at table
-    ctx_pan = Table_p;
+    ctx_pan = &Table_p;
 
     bool running = true;
     while(running){
@@ -71,21 +72,25 @@ int main(void){
         switch(c){
             case '1':
                 //TODO: Highlight borders
-                ctx_pan = Table_p;
+                ctx_pan = &Table_p;
                 break;
             case '2':
                 //TODO: Highlight borders
-                ctx_pan = Circuit_p;
+                ctx_pan = &Circuit_p;
                 break;
             case 'j':
-                if(ctx_pan.buf_line < PAD_LINES_SIZE)
-                    ctx_pan.buf_line++;
-                prefresh(ctx_pan.buf, ctx_pan.buf_line, 0, 7, 2, 48, 48); 
+                if(ctx_pan->buf_line < PAD_LINES_SIZE)
+                    ctx_pan->buf_line += 2;
+                prefresh(ctx_pan->buf, ctx_pan->buf_line, 0, 
+                        ctx_pan->buf_yPos, ctx_pan->buf_xPos, 
+                        48, ctx_pan->buf_xPos+46); 
                 break;
             case 'k':
-                if(ctx_pan.buf_line > 0)
-                    ctx_pan.buf_line--;
-                prefresh(ctx_pan.buf, ctx_pan.buf_line, 0, 7, 2, 48, 48); 
+                if(ctx_pan->buf_line > 0)
+                    ctx_pan->buf_line -= 2;
+                prefresh(ctx_pan->buf, ctx_pan->buf_line, 0, 
+                        ctx_pan->buf_yPos, ctx_pan->buf_xPos, 
+                        48, ctx_pan->buf_xPos+46); 
                 break;
             case 'q':
                 running = false;

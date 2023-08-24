@@ -10,6 +10,8 @@ typedef struct panel{
     WINDOW *borders;
     WINDOW *buf;
     int buf_line;
+    int buf_xPos;
+    int buf_yPos;
 }Panel;
 
 
