@@ -8,6 +8,11 @@
 
 Panel *ctx_pan;
 
+void highlight_window(WINDOW *borders){
+    wattr_on(borders, A_REVERSE, NULL);
+    wrefresh(borders);
+}
+
 uint64_t *getTerms(int *n_out){
     char buf[BUF_SIZE] = {0};
     printf("\nNumber of terms:");
@@ -65,18 +70,21 @@ int main(void){
     
     //start at table
     ctx_pan = &Table_p;
+    menu_highlightBorders(ctx_pan);
 
     bool running = true;
     while(running){
         char c = getch();
         switch(c){
             case '1':
-                //TODO: Highlight borders
+                menu_printBorders(ctx_pan);         //unhighlight previous
                 ctx_pan = &Table_p;
+                menu_highlightBorders(ctx_pan);
                 break;
             case '2':
-                //TODO: Highlight borders
+                menu_printBorders(ctx_pan);         //unhighlight previous
                 ctx_pan = &Circuit_p;
+                menu_highlightBorders(ctx_pan);
                 break;
             case 'j':
                 if(ctx_pan->buf_line < PAD_LINES_SIZE)

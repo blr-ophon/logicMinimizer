@@ -19,23 +19,47 @@
  * to pass windows to algorithms
  */
 
+void menu_highlightBorders(Panel *pan){
+    wclear(pan->borders);
+    wattr_on(pan->borders, A_REVERSE, NULL);
+    menu_printBorders(pan);
+    wattr_off(pan->borders, A_REVERSE, NULL);
+    wrefresh(pan->borders);
+}
 
+void menu_printBorders(Panel *pan){
+    wclear(pan->borders);
+    box(pan->borders, 0, 0);
+    wprintw(pan->borders, pan->title);
+    wrefresh(pan->borders);
+
+    //reprint the content above the border box
+    prefresh(pan->buf, pan->buf_line, 0, 
+            pan->buf_yPos, pan->buf_xPos, 
+            48, pan->buf_xPos+46); 
+}
 
 void menu_TableWindow(Panel *pan){
-    pan->borders = newwin(48,50,5,1); //height, width, y, x
+    char *str = "|1|-|Quine-McCluskey Minimization|";
+    pan->borders = newwin(48,50,5,1);           //height, width, y, x
+    pan->title = strdup(str);
+                                      
+                                      
     pan->buf = newpad(PAD_LINES_SIZE, 48);      //height, width
     pan->buf_line = 0;
     pan->buf_yPos = 7;
     pan->buf_xPos = 2;
 
     refresh();
-    box(pan->borders, 0, 0);
-    wprintw(pan->borders, "|1|-|Quine-McCluskey Minimization|");
-    wrefresh(pan->borders);
+    menu_printBorders(pan);
 }
 
 void menu_CircuitWindow(Panel *pan){
+
+    char *str = "|2|-|Circuit Visualization|";
     pan->borders = newwin(48,50,5,51);          //height, width, y, x
+    pan->title = strdup(str);
+
     pan->buf = newpad(PAD_LINES_SIZE, 48);      //height, width
     pan->buf_line = 0;
     pan->buf_yPos = 7;
@@ -43,9 +67,7 @@ void menu_CircuitWindow(Panel *pan){
 
 
     refresh();
-    box(pan->borders, 0, 0);
-    wprintw(pan->borders, "|2|-|Circuit Visualization|");
-    wrefresh(pan->borders);
+    menu_printBorders(pan);
 }
 
 
