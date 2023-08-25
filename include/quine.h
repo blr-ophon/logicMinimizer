@@ -62,7 +62,7 @@ struct panel;
 void QM_tables(struct panel *Table_p, struct panel *Circuit_p, uint64_t *terms, int terms_n);
 
 Implicants *getImplicants(struct panel *pan, Minterm **minterms, int n);
-Implicants *getPrimeImplicants(Implicants *implicants, Minterm **minterms, int n);
+Implicants *getPrimeImplicants(struct panel*pan, Implicants *implicants, Minterm **minterms, int n);
 char *PrimeImplicantsToEquation(Implicants *implicants);
 
 Table *createTable(Minterm **minterms, int n);

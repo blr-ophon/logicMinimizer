@@ -22,16 +22,18 @@ void QM_tables(Panel *Table_p, Panel *Circuit_p, uint64_t *terms, int n){
         minterms[i] = IntToMinterm(terms[i], largest_mt);
     }
 
+    wprintw(Table_p->buf, "Provided Minterms:\n");
     for(int i = 0; i < n; i++){
         printMinterm(Table_p, minterms[i]); 
         wprintw(Table_p->buf, "\n");
     }
+    wprintw(Table_p->buf, "\n");
 
 
     Implicants *implicants  = getImplicants(Table_p, minterms, n);
 
-    Implicants *primeImplicants = getPrimeImplicants(implicants, minterms, n);
-    wprintw(Table_p->buf, "PRIME IMPLICANTS:\n");
+    Implicants *primeImplicants = getPrimeImplicants(Table_p, implicants, minterms, n);
+    wprintw(Table_p->buf, "\nPRIME IMPLICANTS:\n");
     printImplicants(Table_p, primeImplicants);
 
     char *equation = PrimeImplicantsToEquation(primeImplicants);
@@ -178,7 +180,7 @@ bool PI_in_minterm(Minterm *Prime_implicant, Minterm *minterm){
 
 
 //Expects minterms sorted
-Implicants *getPrimeImplicants(Implicants *implicants, Minterm **minterms, int n){
+Implicants *getPrimeImplicants(struct panel *pan, Implicants *implicants, Minterm **minterms, int n){
 
     Implicants *primeImplicants = (Implicants*) calloc(1, sizeof(Implicants));
 
@@ -215,17 +217,17 @@ Implicants *getPrimeImplicants(Implicants *implicants, Minterm **minterms, int n
         }
     }
 
-    //printf("\nPETRICK CHART\n");
-    //for(int i = 0; i < implicants->size; i++){
-    //    printf("(");
-    //    printMinterm(implicants->minterms[i]);
-    //    printf("): ");
-    //    for(int j = 0; j < n; j++){
-    //        printf("%d ", Petrick_chart[i][j]);
-    //    }
-    //    printf("\n");
-    //}
-    //printf("\n");
+    wprintw(pan->buf, "\nPETRICK CHART\n");
+    for(int i = 0; i < implicants->size; i++){
+        wprintw(pan->buf, "(");
+        printMinterm(pan, implicants->minterms[i]);
+        wprintw(pan->buf, "): ");
+        for(int j = 0; j < n; j++){
+            wprintw(pan->buf, "%d ", Petrick_chart[i][j]);
+        }
+        wprintw(pan->buf, "\n");
+    }
+    wprintw(pan->buf, "\n");
 
     //get prime implicants 
     return primeImplicants;

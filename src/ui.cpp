@@ -39,6 +39,21 @@ void menu_printBorders(Panel *pan){
             48, pan->buf_xPos+46); 
 }
 
+void menu_PromptWindow(Panel *pan){
+    memset(pan, 0, sizeof(Panel));
+    char *str = "|Enter terms (a,b,c...)|";
+    pan->borders = newwin(20,40,20,45);         //height, width, y, x
+    pan->title = strdup(str);
+                                      
+                                      
+    pan->buf = newwin(18,38,21,46);
+    pan->buf_yPos = 28;
+    pan->buf_xPos = 28;
+
+    refresh();
+    menu_printBorders(pan);
+}
+
 void menu_TableWindow(Panel *pan){
     char *str = "|1|-|Quine-McCluskey Minimization|";
     pan->borders = newwin(48,50,5,1);           //height, width, y, x

@@ -5,6 +5,7 @@ CFLAGS = -g -Wall -Wextra -pedantic $(OPT)
 
 INCLUDES= -I ./include
 LIBRARIES= -lm -lncurses
+HEADERS := $(shell find ./ -name '*.h')
 
 CFILES_DIR := ./src
 BUILD_DIR := ./build
@@ -17,7 +18,7 @@ EXEC := ./logimin
 ${EXEC}: ${OBJECTS}
 	$(CC) ${CFLAGS} ${INCLUDES} $^ -o $@ ${LIBRARIES}
 
-${BUILD_DIR}/%.o: ${CFILES_DIR}/%.cpp
+${BUILD_DIR}/%.o: ${CFILES_DIR}/%.cpp ${HEADERS}
 	mkdir -p $(dir $@)
 	$(CC) ${CFLAGS} ${INCLUDES}  -c $< -o $@ ${LIBRARIES}
 

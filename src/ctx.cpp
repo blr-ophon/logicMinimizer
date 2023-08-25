@@ -8,65 +8,74 @@
 
 Panel *ctx_pan;
 
-void highlight_window(WINDOW *borders){
-    wattr_on(borders, A_REVERSE, NULL);
-    wrefresh(borders);
-}
 
-uint64_t *getTerms(int *n_out){
-    char buf[BUF_SIZE] = {0};
-    printf("\nNumber of terms:");
-    fgets(buf, BUF_SIZE, stdin);
-    int terms_n = atoi(buf);
+/*
+ * gets terms and number of terms from a string
+ * a,b,c,d,e,f
+ */
+uint64_t *parseTerms(char *str, int *n_out){
+    int count = 0;
 
-    //Get minterms 
-    printf("\nTerms:\n");
-    uint64_t *terms = (uint64_t*) calloc(terms_n, sizeof(uint64_t));
-    int valid_terms_n = 0;
+    const char s[2] = ",";
 
-    for(int i = 0; i < terms_n; i++){
-        fgets(buf, BUF_SIZE, stdin);
-        uint64_t newTerm = atoi(buf);
-        if(!termIsPresent(newTerm, terms, terms_n)){
-            //ignore repeated terms
-            terms[valid_terms_n++] = newTerm;
-        }
+    uint64_t *terms = (uint64_t*) calloc(1, sizeof(uint64_t));
+
+    // get the first token
+    char *token;
+    token = strtok(str, s);
+
+    /* walk through other tokens */
+    while(token != NULL) {
+        count++;
+        terms = (uint64_t*) realloc(terms, count*sizeof(uint64_t));
+        terms[count-1] = atoi(token);
+        token = strtok(NULL, s);
     }
 
-    *n_out = valid_terms_n;
+    *n_out = count;
     return terms;
 }
 
-int main(void){
-    //get input
-    //Get number of minterms 
+
+
+uint64_t *getTerms(Panel *pan, int *n_out){
+    echo();
+    char buf[BUF_SIZE] = {0};
+    menu_PromptWindow(pan);
+    wgetnstr(pan->buf, buf, BUF_SIZE);
+    noecho();
+    return parseTerms(buf, n_out);
+}
+
+void newOperation(Panel *Table_p, Panel *Circuit_p, Panel *Prompt_p){
+    /* 
+     * Prompt for terms
+     */
     int n = 0;
-    uint64_t *terms = getTerms(&n);
-
-    menu_init();
-
-
-
-    Panel Table_p;
-    Panel Circuit_p;
-
-    menu_TableWindow(&Table_p);
-    menu_CircuitWindow(&Circuit_p);
+    uint64_t *terms = getTerms(Prompt_p, &n);
 
     /*
      * Fill table and circuit
      */
-    QM_tables(&Table_p, &Circuit_p, terms, n);
-
-
-
-    /*
-     * Start program loop
-     */
+    menu_TableWindow(Table_p);
+    menu_CircuitWindow(Circuit_p);
+    QM_tables(Table_p, Circuit_p, terms, n);
 
     //prerefresh: pad, y, x,  ret_ymin, ret_xmin, ret_ymax, ret_xmax
-    prefresh(Table_p.buf, Table_p.buf_line, 0, 7, 2, 48, 48); 
-    prefresh(Circuit_p.buf, Circuit_p.buf_line, 0, 7, 52, 48, 48+50); 
+    prefresh(Table_p->buf, Table_p->buf_line, 0, 7, 2, 48, 48); 
+    prefresh(Circuit_p->buf, Circuit_p->buf_line, 0, 7, 52, 48, 48+50); 
+}
+
+
+
+int main(void){
+    menu_init();
+
+    Panel Table_p;
+    Panel Circuit_p;
+    Panel Prompt_p;
+
+    newOperation(&Table_p, &Circuit_p, &Prompt_p);
     
     //start at table
     ctx_pan = &Table_p;
@@ -76,6 +85,11 @@ int main(void){
     while(running){
         char c = getch();
         switch(c){
+            case '0':
+                newOperation(&Table_p, &Circuit_p, &Prompt_p);
+                ctx_pan = &Table_p;
+                menu_highlightBorders(ctx_pan);
+                break;
             case '1':
                 menu_printBorders(ctx_pan);         //unhighlight previous
                 ctx_pan = &Table_p;
