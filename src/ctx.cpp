@@ -8,6 +8,13 @@
 
 Panel *ctx_pan;
 
+typedef struct{
+    Panel *Table_p;
+    Panel *Circuit_p;
+    Panel *Prompt_p;
+    Panel *Help_p;
+}Menu;
+
 
 /*
  * gets terms and number of terms from a string
@@ -47,22 +54,25 @@ uint64_t *getTerms(Panel *pan, int *n_out){
     return parseTerms(buf, n_out);
 }
 
-void newOperation(Panel *Table_p, Panel *Circuit_p, Panel *Prompt_p){
+
+void newOperation(Menu *menu){
     /* 
      * Prompt for terms
      */
     int n = 0;
-    uint64_t *terms = getTerms(Prompt_p, &n);
+    uint64_t *terms = getTerms(menu->Prompt_p, &n);
 
-    /*
-     * Fill table and circuit
-     */
-    menu_TableWindow(Table_p);
-    menu_CircuitWindow(Circuit_p);
-    QM_tables(Table_p, Circuit_p, terms, n);
+    //Init windows
+    menu_HelpWindow(menu->Help_p);
+    menu_TableWindow(menu->Table_p);
+    menu_CircuitWindow(menu->Circuit_p);
 
-    menu_printContent(Table_p);
-    menu_printContent(Circuit_p);
+    //Fill window pads with tables and circuit
+    QM_tables(menu->Table_p, menu->Circuit_p, terms, n);
+
+    //Print window pads
+    menu_printContent(menu->Table_p);
+    menu_printContent(menu->Circuit_p);
 }
 
 
@@ -73,8 +83,11 @@ int main(void){
     Panel Table_p;
     Panel Circuit_p;
     Panel Prompt_p;
+    Panel Help_p;
 
-    newOperation(&Table_p, &Circuit_p, &Prompt_p);
+    Menu menu = {&Table_p, &Circuit_p, &Prompt_p, &Help_p};
+
+    newOperation(&menu);
     
     //start at table
     ctx_pan = &Table_p;
@@ -85,7 +98,7 @@ int main(void){
         char c = getch();
         switch(c){
             case '0':
-                newOperation(&Table_p, &Circuit_p, &Prompt_p);
+                newOperation(&menu);
                 ctx_pan = &Table_p;
                 menu_highlightBorders(ctx_pan);
                 break;

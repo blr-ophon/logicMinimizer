@@ -26,6 +26,7 @@ void menu_init(void);
 void menu_TableWindow(Panel *pan);
 void menu_CircuitWindow(Panel *pan);
 void menu_PromptWindow(Panel *pan);
+void menu_HelpWindow(Panel *pan);
 
 void menu_printBorders(Panel *pan);
 void menu_highlightBorders(Panel *pan);

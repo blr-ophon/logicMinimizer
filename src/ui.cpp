@@ -45,6 +45,37 @@ void menu_printBorders(Panel *pan){
     menu_printContent(pan);
 }
 
+void menu_HelpWindow(Panel *pan){
+    int y,x;
+    getmaxyx(stdscr,y,x);
+
+    char *str = "|LOGIMIN|";
+    pan->height = y/5;
+    pan->width = x-2;
+    pan->yPos = 0;
+    pan->xPos = 1;
+
+    pan->borders = newwin(pan->height, pan->width,
+            pan->yPos, pan->xPos);         //height, width, y, x
+    pan->title = strdup(str);
+                                      
+    pan->buf = newwin(pan->height-2, pan->width-2,
+            pan->yPos+1, pan->xPos+1);
+    pan->buf_yPos = pan->yPos+2;
+    pan->buf_xPos = pan->xPos+1;
+
+    refresh();
+    menu_printBorders(pan);
+
+    wprintw(pan->buf, "\nCOMMANDS:\n\n");
+    wprintw(pan->buf, "%-30s%-30s%-30s\n",
+            "0: New Operation", "1: Quine-McCluskey Window",
+            "2: Circuit Window");
+    wprintw(pan->buf, "%-30s%-30s%-30s\n",
+            "j: Scroll Down", "k: Scroll Up", "q: Quit");
+    wrefresh(pan->buf);
+}
+
 void menu_PromptWindow(Panel *pan){
     int y,x;
     getmaxyx(stdscr,y,x);
