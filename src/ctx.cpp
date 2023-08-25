@@ -61,9 +61,8 @@ void newOperation(Panel *Table_p, Panel *Circuit_p, Panel *Prompt_p){
     menu_CircuitWindow(Circuit_p);
     QM_tables(Table_p, Circuit_p, terms, n);
 
-    //prerefresh: pad, y, x,  ret_ymin, ret_xmin, ret_ymax, ret_xmax
-    prefresh(Table_p->buf, Table_p->buf_line, 0, 7, 2, 48, 48); 
-    prefresh(Circuit_p->buf, Circuit_p->buf_line, 0, 7, 52, 48, 48+50); 
+    menu_printContent(Table_p);
+    menu_printContent(Circuit_p);
 }
 
 
@@ -103,16 +102,12 @@ int main(void){
             case 'j':
                 if(ctx_pan->buf_line < PAD_LINES_SIZE)
                     ctx_pan->buf_line += 2;
-                prefresh(ctx_pan->buf, ctx_pan->buf_line, 0, 
-                        ctx_pan->buf_yPos, ctx_pan->buf_xPos, 
-                        48, ctx_pan->buf_xPos+46); 
+                menu_printContent(ctx_pan);
                 break;
             case 'k':
                 if(ctx_pan->buf_line > 0)
                     ctx_pan->buf_line -= 2;
-                prefresh(ctx_pan->buf, ctx_pan->buf_line, 0, 
-                        ctx_pan->buf_yPos, ctx_pan->buf_xPos, 
-                        48, ctx_pan->buf_xPos+46); 
+                menu_printContent(ctx_pan);
                 break;
             case 'q':
                 running = false;

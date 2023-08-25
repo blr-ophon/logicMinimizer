@@ -19,6 +19,14 @@
  * to pass windows to algorithms
  */
 
+void menu_printContent(Panel *pan){
+    //prerefresh: pad, y, x,  ret_ymin, ret_xmin, ret_ymax, ret_xmax
+    prefresh(pan->buf, pan->buf_line, 0, 
+            pan->buf_yPos, pan->buf_xPos, 
+            pan->buf_yPos + pan->height - 4, 
+            pan->buf_xPos + pan->width - 3); 
+}
+
 void menu_highlightBorders(Panel *pan){
     wclear(pan->borders);
     wattr_on(pan->borders, A_REVERSE, NULL);
@@ -34,52 +42,72 @@ void menu_printBorders(Panel *pan){
     wrefresh(pan->borders);
 
     //reprint the content above the border box
-    prefresh(pan->buf, pan->buf_line, 0, 
-            pan->buf_yPos, pan->buf_xPos, 
-            48, pan->buf_xPos+46); 
+    menu_printContent(pan);
 }
 
 void menu_PromptWindow(Panel *pan){
-    memset(pan, 0, sizeof(Panel));
+    int y,x;
+    getmaxyx(stdscr,y,x);
+
     char *str = "|Enter terms (a,b,c...)|";
-    pan->borders = newwin(20,40,20,45);         //height, width, y, x
+    pan->height = y/3;
+    pan->width = x/4;
+    pan->yPos = y/2 - (pan->height/2);
+    pan->xPos = x/2 - (pan->width/2);
+
+    pan->borders = newwin(pan->height, pan->width,
+            pan->yPos, pan->xPos);         //height, width, y, x
     pan->title = strdup(str);
                                       
                                       
-    pan->buf = newwin(18,38,21,46);
-    pan->buf_yPos = 28;
-    pan->buf_xPos = 28;
+    pan->buf = newwin(pan->height-2, pan->width-2,
+            pan->yPos+1, pan->xPos+1);
+    pan->buf_yPos = pan->yPos+2;
+    pan->buf_xPos = pan->xPos+1;
 
     refresh();
     menu_printBorders(pan);
 }
 
 void menu_TableWindow(Panel *pan){
+    int y,x;
+    getmaxyx(stdscr,y,x);
+
     char *str = "|1|-|Quine-McCluskey Minimization|";
-    pan->borders = newwin(48,50,5,1);           //height, width, y, x
+    pan->height = (4*y)/5;
+    pan->width = x/2-1;
+    pan->yPos = y/5;
+    pan->xPos = 1;
+
+    pan->borders = newwin(pan->height,pan->width, pan->yPos, pan->xPos);    //height, width, y, x
     pan->title = strdup(str);
                                       
-                                      
-    pan->buf = newpad(PAD_LINES_SIZE, 48);      //height, width
+    pan->buf = newpad(PAD_LINES_SIZE, pan->width-2);      //height, width
     pan->buf_line = 0;
-    pan->buf_yPos = 7;
-    pan->buf_xPos = 2;
+    pan->buf_yPos = pan->yPos+2;
+    pan->buf_xPos = pan->xPos+1;
 
     refresh();
     menu_printBorders(pan);
 }
 
 void menu_CircuitWindow(Panel *pan){
+    int y,x;
+    getmaxyx(stdscr,y,x);
 
     char *str = "|2|-|Circuit Visualization|";
-    pan->borders = newwin(48,50,5,51);          //height, width, y, x
+    pan->height = (4*y)/5;
+    pan->width = x/2-1;
+    pan->yPos = y/5;
+    pan->xPos = x/2;
+
+    pan->borders = newwin(pan->height,pan->width, pan->yPos, pan->xPos);    //height, width, y, x
     pan->title = strdup(str);
 
-    pan->buf = newpad(PAD_LINES_SIZE, 48);      //height, width
+    pan->buf = newpad(PAD_LINES_SIZE, pan->width-2);      //height, width
     pan->buf_line = 0;
-    pan->buf_yPos = 7;
-    pan->buf_xPos = 52;
-
+    pan->buf_yPos = pan->yPos+2;
+    pan->buf_xPos = pan->xPos+1;
 
     refresh();
     menu_printBorders(pan);
