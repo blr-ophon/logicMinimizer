@@ -148,13 +148,25 @@ void printGroup(Panel *pan, Group *group){
         printMinterm(pan, group->minterms[i]);
         wprintw(pan->buf, "\n");
     }
-    wprintw(pan->buf, "*--\n");
+    wprintw(pan->buf, "*");
+    for(int i = 0; i < pan->width/2; i++){
+        wprintw(pan->buf, "-");
+    }
+    wprintw(pan->buf, "\n");
 }
 
 void printTable(Panel *pan, Table *table){
     if(!table) return;
 
-    wprintw(pan->buf, "==========TABLE==========:\n");
+    for(int i = 0; i < pan->width/2 - 3; i++){
+        wprintw(pan->buf, "=");
+    }
+    wprintw(pan->buf, "TABLE");
+    for(int i = 0; i < pan->width/2 - 3; i++){
+        wprintw(pan->buf, "=");
+    }
+    wprintw(pan->buf, "\n");
+
     wprintw(pan->buf, "> size: %d\n", table->size);
     wprintw(pan->buf, "> max set bits: %d\n\n", table->max_setBits);
     for(int i = 0; i < table->size; i++){
@@ -165,7 +177,12 @@ void printTable(Panel *pan, Table *table){
         printMinterm(pan, table->implicants.minterms[i]);
         wprintw(pan->buf, "\n");
     }
-    wprintw(pan->buf, "=========================:\n\n");
+    wprintw(pan->buf, "\n");
+
+    for(int i = 0; i < pan->width - 2; i++){
+        wprintw(pan->buf, "=");
+    }
+    wprintw(pan->buf, "\n");
 }
 
 void printPChart(bool **Petrick_chart, int rows, int colums){
