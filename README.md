@@ -1,5 +1,5 @@
 
-# Logic Circuit Minimizer
+# Quine-McCluskey Solver
 
 Receives any number of minterms with a maximum of 64 bits. Generates the reduced Boolean equation using Quine-McCluskey algorithm for implicants and Petrick's method for prime implicants. Display the tables, chart, equation and digital circuit.
 
